@@ -15,6 +15,15 @@
 				    columbia = L.marker([45.611,-121.161 ]).bindPopup('Columbia River Projects');
 					willamette = L.marker([44.558,-123.065 ]).bindPopup('Willamette River Projects');
 				var rivers = L.layerGroup([snake, columbia, willamette]);
+				
+
+				//add cbt markers
+				var cbts = L.layerGroup()
+				{% for cbt in cbts %}
+				var {{ cbt.cbt }} = L.marker([{{ cbt.latitude }},{{ cbt.longitude }}]).bindPopup('{{ cbt.name }}');
+				cbts.addLayer( {{cbt.cbt }} );
+				{% endfor %}
+
 				// Create map
 				var mymap = L.map('mapid',{
 								center: [46.271,-115.396 ],
@@ -23,11 +32,13 @@
 								})
 					//remove rivers on zoom
 					mymap.on('zoomend', function(){
-							if (mymap.getZoom() > 7 && mymap.hasLayer(rivers)){
+							if (mymap.getZoom() > 7 && mymap.hasLayer(rivers) && mymap.hasLayer(cbts) == false){
 								mymap.removeLayer(rivers);
+								mymap.addLayer(cbts);
 							}
-							if (mymap.getZoom() < 7 && mymap.hasLayer(rivers) == false){
+							if (mymap.getZoom() < 7 && mymap.hasLayer(rivers) == false && mymap.hasLayer(cbts)){
 								mymap.addLayer(rivers);
+								mymap.removeLayer(cbts);
 							}
 						});	
 
