@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<h1>D3 leaflet app</h1>
+	<script type = "text/javascript">
+	const data = await d3.csv("/static/time_scale_data.csv");
+	console.log(data);
+	</script>
+{% endblock %}

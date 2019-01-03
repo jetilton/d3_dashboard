@@ -1,26 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<h1>D3 leaflet app</h1>
-	<script type = "text/javascript">
-	var dataset = [5,10,15,20,25]
-	var w = 500
-	var h = 50
-	var svg = d3.select("body")
-				.append("svg")
-				.attr('width', w)
-				.attr('height',h);
+		<h1>D3 leaflet app</h1>
 
-	var circles = svg.selectAll('circle')
-			.data(dataset)
-			.enter()	
-			.append('circle');
-	circles.attr('cx', function(d,i){
-				return (i*50) + 25;
-			})
-			.attr('cy', h/2)
-			.attr('r', function(d) {
-				return d;
-			});
-	</script>
+		<div id ="mapid"></div>	
+		<script type="text/javascript">
+				var streets = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+											maxZoom: 18,
+											id: 'mapbox.streets',
+											accessToken: 'pk.eyJ1IjoiamZmdGlsdG9uIiwiYSI6ImNqcWVnbDlzaTFiNGc0Mm53NHVyNTl5OTMifQ.rq5EIs1uXkuYrg08W3OO3g'
+				});
+				//River layer
+				var snake = L.marker([46.271,-115.396 ]).bindPopup('Snake River Projects');
+				    columbia = L.marker([45.611,-121.161 ]).bindPopup('Columbia River Projects');
+					willamette = L.marker([44.558,-123.065 ]).bindPopup('Willamette River Projects');
+				var rivers = L.layerGroup([snake, columbia, willamette]);
+				// Create map
+				var mymap = L.map('mapid',{
+								center: [46.271,-115.396 ],
+								zoom: 5,
+								layers: [streets, rivers]
+								})
+					//remove rivers on zoom
+					mymap.on('zoomend', function(){
+							if (mymap.getZoom() > 7 && mymap.hasLayer(rivers)){
+								mymap.removeLayer(rivers);
+							}
+							if (mymap.getZoom() < 7 && mymap.hasLayer(rivers) == false){
+								mymap.addLayer(rivers);
+							}
+						});	
+
+		</script>
+
+
 {% endblock %}
