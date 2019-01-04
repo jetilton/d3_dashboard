@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1>Edit {{ cbt.name }} </h1>
-    <form action="" method="post">
+    <form action="" method="post" id = 'paths'>
         {{ form.hidden_tag() }}
 	<table>
 		<tr>
@@ -22,17 +22,20 @@
 	$(document).ready(function() {
         $('form').submit(function (e) {
             var url = "{{ url_for('process_cbt') }}"; // send the form data here.
+			var data = $('form').serializeArray().reduce(function(obj, item) {
+				obj[item.name] = item.value;
+				return obj;
+			}, {});
             $.ajax({
                 type: "POST",
                 url: url,
-				dataType: "json",
 				headers:{"X-CSRFToken": "{{ form.csrf_token._value() }}"},
                 data: $('form').serialize(),// serializes the form's elements.
                 success: function (data) {
                     console.log(data)  // display the returned data in the console.
                 },
 				error: function(){
-						console.log($('form').serialize())
+						console.log(data)
 				}
             });
             e.preventDefault(); // block the traditional submission of the form.

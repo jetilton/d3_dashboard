@@ -7,6 +7,7 @@ from werkzeug.urls import url_parse
 from flask import abort, jsonify
 import json
 import requests
+from app import csrf
  
 @app.route('/')
 @app.route('/index')
@@ -80,6 +81,8 @@ def edit_cbt(cbt):
 @login_required
 def process_cbt():
 	form = PathsForm()
-	if form.validate_on_submit():	
-		return jsonify(data={'message':'Success'})
+	choice = request.form.get('paths')
+	form.paths.choices = [(choice,choice)]
+	if form.validate_on_submit():
+		return jsonify(data={'message':'success'})
 	return jsonify(data={'message': 'Failure'})
