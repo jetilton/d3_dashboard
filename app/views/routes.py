@@ -1,14 +1,18 @@
-from app import app
+from app import app, db
 from flask import render_template, url_for, flash, redirect, request
-from app.forms import LoginForm
-from flask_login import current_user, login_user, logout_user
-from app.models import User
+from app.forms import LoginForm, CbtForm, PathsForm
+from flask_login import current_user, login_user, logout_user, login_required
+from app.models import User, Cbt, Paths
 from werkzeug.urls import url_parse
-
+from flask import abort, jsonify
+import json
+import requests
+ 
 @app.route('/')
 @app.route('/index')
 def index():
-	return render_template('index.html')
+	cbts = Cbt.query.all()
+	return render_template('index.html', cbts=cbts) 
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -33,4 +37,49 @@ def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
+@app.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
+@login_required
+def add_cbt(cbt):
+	form = CbtForm()
+	cbt = cbt.upper()
+	url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt)
+	r = requests.get(url)
+	data = json.loads(r.text)
+	try:
+		cbt_data = data[cbt]
+	except KeyError:
+		#error handling
+		abort(404)
+	if request.method == 'GET':
+		form.name.data = cbt_data['name']
+		form.latitude.data = cbt_data['coordinates']['latitude']
+		form.longitude.data = cbt_data['coordinates']['longitude']
+	if form.validate_on_submit() and form.add.data:
+		cbt = Cbt(cbt = cbt, name = form.name.data, latitude = form.latitude.data, longitude = form.longitude.data)
+		db.session.add(cbt)
+		db.session.commit()
+		flash('{} added to map'.format(form.name.data))
+		return redirect(url_for('index'))
+	return render_template('add_cbt.html', data=data, form=form)
 
+@app.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
+@login_required
+def edit_cbt(cbt):
+	cbt = Cbt.query.filter_by(cbt=cbt.upper()).first_or_404()	
+	url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt.cbt)
+	r = requests.get(url)
+	data = json.loads(r.text)[cbt.cbt]
+	paths = list(data['timeseries'].keys())
+	choices = [(path, path) for path in paths]
+	form = PathsForm()
+	form.paths.choices = choices
+	form.cbt_id.data = cbt.id
+	return render_template('edit_cbt.html', cbt=cbt, form=form)
+
+@app.route('/process_cbt', methods = ['POST'])
+@login_required
+def process_cbt():
+	form = PathsForm()
+	if form.validate_on_submit():	
+		return jsonify(data={'message':'Success'})
+	return jsonify(data={'message': 'Failure'})

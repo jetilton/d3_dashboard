@@ -30,10 +30,14 @@
                 data: $('form').serialize(),// serializes the form's elements.
                 success: function (data) {
                     console.log(data)  // display the returned data in the console.
-                }
+                },
+				error: function(){
+						console.log($('form').serialize())
+				}
             });
             e.preventDefault(); // block the traditional submission of the form.
         });
+			
         // Inject our CSRF token into our AJAX request.
         $.ajaxSetup({
             beforeSend: function(xhr, settings) {

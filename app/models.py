@@ -19,11 +19,12 @@ class User(UserMixin, db.Model):
 	def check_password(self, password):
 		return check_password_hash(self.password_hash, password)
 
-class Project(db.Model):
+class Cbt(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
-	name = db.Column(db.String(64))
-	lat = db.Column(db.Float)
-	long = db.Column(db.Float)
+	cbt = db.Column(db.String(64), unique=True)
+	name = db.Column(db.String(64), unique = True)
+	latitude = db.Column(db.Float)
+	longitude = db.Column(db.Float)
 	
 	def __repr__(self):
 		return "<Project {}>".format(self.name)
@@ -32,4 +33,9 @@ class Project(db.Model):
 def load_user(id):
 	return User.query.get(int(id))
 
-
+class Paths(db.Model):
+	id = db.Column(db.Integer, primary_key = True)
+	path = db.Column(db.String(128))
+	name = db.Column(db.String(64), nullable = False)
+	order = db.Column(db.Integer, nullable = False)
+	cbt_id = db.Column(db.Integer, db.ForeignKey('cbt.id'), nullable = False)
