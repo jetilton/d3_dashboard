@@ -13,6 +13,11 @@ class CbtForm(FlaskForm):
 	latitude = FloatField('latitude', validators = [DataRequired()])
 	longitude = FloatField('longitude', validators = [DataRequired()])
 	add = BooleanField('Add to map')
+	tw_el_path = SelectField('Tailwater Elevation Path')
+	fb_el_path = SelectField('Forebay Elevation Path')
+	flow_out_path = SelectField('Outflow Path')
+	spill_flow_path = SelectField('Spill Flow Path')
+	gen_flow_path = SelectField('Generation Flow Path')
 	submit = SubmitField('Submit')
 
 class PathsForm(FlaskForm):

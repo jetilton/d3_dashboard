@@ -2,7 +2,7 @@ from app import app, db
 from flask import render_template, url_for, flash, redirect, request
 from app.forms import LoginForm, CbtForm, PathsForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Cbt, Paths
+from app.models import User, Cbt 
 from werkzeug.urls import url_parse
 from flask import abort, jsonify
 import json
@@ -55,6 +55,12 @@ def add_cbt(cbt):
 		form.name.data = cbt_data['name']
 		form.latitude.data = cbt_data['coordinates']['latitude']
 		form.longitude.data = cbt_data['coordinates']['longitude']
+		form.tw_el_path.choices = [' ']+list(cbt_data['timeseries'].keys())
+		form.fb_el_path.choices = [' ']+list(cbt_data['timeseries'].keys())
+		form.flow_out_path.choices = [' ']+list(cbt_data['timeseries'].keys())
+		form.spill_flow_path.choices = [' ']+list(cbt_data['timeseries'].keys())
+		form.gen_flow_path.choices = [' ']+list(cbt_data['timeseries'].keys())
+
 	if form.validate_on_submit() and form.add.data:
 		cbt = Cbt(cbt = cbt, name = form.name.data, latitude = form.latitude.data, longitude = form.longitude.data)
 		db.session.add(cbt)

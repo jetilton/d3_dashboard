@@ -25,7 +25,7 @@ class Cbt(db.Model):
 	name = db.Column(db.String(64), unique = True)
 	latitude = db.Column(db.Float)
 	longitude = db.Column(db.Float)
-	
+
 	def __repr__(self):
 		return "<Project {}>".format(self.name)
 
@@ -33,9 +33,12 @@ class Cbt(db.Model):
 def load_user(id):
 	return User.query.get(int(id))
 
-class Paths(db.Model):
-	id = db.Column(db.Integer, primary_key = True)
-	path = db.Column(db.String(128))
-	name = db.Column(db.String(64), nullable = False)
-	order = db.Column(db.Integer, nullable = False)
-	cbt_id = db.Column(db.Integer, db.ForeignKey('cbt.id'), nullable = False)
+
+class Path(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	cbt_id = db.Column(db.Integer, db.ForeignKey('cbt.id'),
+        nullable=False)
+	path = db.Column(db.String(128), unique = True)
+	value = db.Column(db.Float)
+	date = db.Column(db.DateTime)	
+

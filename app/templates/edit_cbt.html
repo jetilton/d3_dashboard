@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-
-{% block content %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block app_content %}
     <h1>Edit {{ cbt.name }} </h1>
     <form action="" method="post" id = 'paths'>
         {{ form.hidden_tag() }}
