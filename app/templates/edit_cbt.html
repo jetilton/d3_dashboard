@@ -2,53 +2,25 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
     <h1>Edit {{ cbt.name }} </h1>
-    <form action="" method="post" id = 'paths'>
+    <div>
+        <form method="post" role="form">
         {{ form.hidden_tag() }}
-	<table>
-		<tr>
-			<th>{{ form.name.label }}</th>
-			<th>{{ form.paths.label }}</th>
-		<tr>
-			<td>{{ form.name(size=32) }}</td>
-			<td>{{ form.paths() }}</td>
-		</tr>
-	</table>
-	{{ form.cbt_id() }}
-    <input type = "submit" value = "Add Path"/>
-	</form>
-
-	<script type="text/javascript">
-
-	$(document).ready(function() {
-        $('form').submit(function (e) {
-            var url = "{{ url_for('process_cbt') }}"; // send the form data here.
-			var data = $('form').serializeArray().reduce(function(obj, item) {
-				obj[item.name] = item.value;
-				return obj;
-			}, {});
-            $.ajax({
-                type: "POST",
-                url: url,
-				headers:{"X-CSRFToken": "{{ form.csrf_token._value() }}"},
-                data: $('form').serialize(),// serializes the form's elements.
-                success: function (data) {
-                    console.log(data)  // display the returned data in the console.
-                },
-				error: function(){
-						console.log(data)
-				}
-            });
-            e.preventDefault(); // block the traditional submission of the form.
-        });
-			
-        // Inject our CSRF token into our AJAX request.
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                    xhr.setRequestHeader("X-CSRFToken", "{{ form.csrf_token._value() }}")
-                }
-            }
-        })
-    });
-	</script>
+        {{ wtf.form_errors(form, hiddens="only") }}
+        <table class="table">
+          <thead>
+          </thead>
+          <tbody>
+            {% for row in row_list %}
+            <tr>
+              <td>{{ wtf.form_field(form[row[0]]) }}</td>
+              <td>{{ wtf.form_field(form[row[1]]) }}</td>
+              <td>{{ wtf.form_field(form[row[2]]) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {{ wtf.form_field(form.submit) }}
+        </form>
+         </div> 
+    
 {% endblock %}

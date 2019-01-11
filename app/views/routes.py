@@ -8,87 +8,147 @@ from flask import abort, jsonify
 import json
 import requests
 from app import csrf
- 
+from wtforms import StringField, SelectField, HiddenField, SubmitField
+from wtforms.validators import DataRequired
 @app.route('/')
 @app.route('/index')
 def index():
-	cbts = Cbt.query.all()
-	return render_template('index.html', cbts=cbts) 
+    cbts = Cbt.query.all()
+    return render_template('index.html', cbts=cbts) 
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	if current_user.is_authenticated:
-		return redirect(url_for('index'))
-	form = LoginForm()
-	if form.validate_on_submit():
-		user = User.query.filter_by(username=form.username.data).first()
-		if user is None or not user.check_password(form.password.data):
-			flash('Invalid username or password')
-			return redirect(url_for('login'))
-		login_user(user, remember=form.remember_me.data)
-		next_page = request.args.get('next')
-		if not next_page or url_parse(next_page).netloc != '':
-			next_page = url_for('index')
-		return redirect(next_page)
-	return render_template('login.html', title='Sign In', form=form)
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)
 
 @app.route('/logout')
 def logout():
-	logout_user()
-	return redirect(url_for('index'))
+    logout_user()
+    return redirect(url_for('index'))
 
 @app.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
 @login_required
 def add_cbt(cbt):
-	form = CbtForm()
-	cbt = cbt.upper()
-	url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt)
-	r = requests.get(url)
-	data = json.loads(r.text)
-	try:
-		cbt_data = data[cbt]
-	except KeyError:
-		#error handling
-		abort(404)
-	if request.method == 'GET':
-		form.name.data = cbt_data['name']
-		form.latitude.data = cbt_data['coordinates']['latitude']
-		form.longitude.data = cbt_data['coordinates']['longitude']
-		form.tw_el_path.choices = [' ']+list(cbt_data['timeseries'].keys())
-		form.fb_el_path.choices = [' ']+list(cbt_data['timeseries'].keys())
-		form.flow_out_path.choices = [' ']+list(cbt_data['timeseries'].keys())
-		form.spill_flow_path.choices = [' ']+list(cbt_data['timeseries'].keys())
-		form.gen_flow_path.choices = [' ']+list(cbt_data['timeseries'].keys())
-
-	if form.validate_on_submit() and form.add.data:
-		cbt = Cbt(cbt = cbt, name = form.name.data, latitude = form.latitude.data, longitude = form.longitude.data)
-		db.session.add(cbt)
-		db.session.commit()
-		flash('{} added to map'.format(form.name.data))
-		return redirect(url_for('index'))
-	return render_template('add_cbt.html', data=data, form=form)
+    cbt_form = CbtForm()
+    cbt = cbt.upper()
+    
+    url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt)
+    r = requests.get(url)
+    data = json.loads(r.text)
+    try:
+        cbt_data = data[cbt]
+    except KeyError:
+        #error handling
+        abort(404)
+    if request.method == 'GET':
+        cbt_form.name.data = cbt_data['name']
+        cbt_form.latitude.data = cbt_data['coordinates']['latitude']
+        cbt_form.longitude.data = cbt_data['coordinates']['longitude']
+    if request.method == 'POST':
+        if cbt_form.validate_on_submit() and cbt_form.add.data:
+            cbt = Cbt(cbt = cbt, name = cbt_form.name.data, latitude = cbt_form.latitude.data, longitude = cbt_form.longitude.data)
+            db.session.add(cbt)
+            db.session.commit()
+            flash('{} added to map'.format(cbt_form.name.data))
+        return redirect(url_for('index'))
+    return render_template('add_cbt.html', data=data, cbt_form=cbt_form)
 
 @app.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
 @login_required
 def edit_cbt(cbt):
-	cbt = Cbt.query.filter_by(cbt=cbt.upper()).first_or_404()	
-	url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt.cbt)
-	r = requests.get(url)
-	data = json.loads(r.text)[cbt.cbt]
-	paths = list(data['timeseries'].keys())
-	choices = [(path, path) for path in paths]
-	form = PathsForm()
-	form.paths.choices = choices
-	form.cbt_id.data = cbt.id
-	return render_template('edit_cbt.html', cbt=cbt, form=form)
+    cbt = Cbt.query.filter_by(cbt=cbt.upper()).first_or_404()    
+    url = "http://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/getjson?tscatalog=%5B%22{}%22%5D".format(cbt.cbt)
+    r = requests.get(url)
+    data = json.loads(r.text)[cbt.cbt]
+    paths = list(data['timeseries'].keys())
+    choices = [('','')]+[(path, path) for path in paths]
+    parameter = SelectField('Parameter', choices = [('',''),
+                                                    ('forebay_elevation', 'Forebay Elevation'),
+                                                    ('tailwater_elevation', 'Tailwater Elevation'),
+                                                    ('flow_out', 'Flow Out')])
+    custom_parameter = StringField('Custom Parameter')
+    path_field = SelectField('Path', choices=choices)
+    class F(PathsForm):
+        pass
+    F.cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
+    i=0
+    row_list = []
+    for path in paths:
+        param_name = 'param_{}'.format(str(i))
+        setattr(F, param_name, parameter)
+        custom_param_name = 'custom_param_{}'.format(str(i))
+        setattr(F, custom_param_name, custom_parameter)
+        path_name = 'path_{}'.format(str(i))
+        setattr(F, path_name, path_field)
+        row_list.append((param_name, custom_param_name, path_name))
+        i += 1
+    F.submit = SubmitField('Submit')
+    def validate(self):
+        paths = set()
+        params = list()
+        
+        for row in row_list:
+            errors = tuple(' ')
+            if self[row[0]].data and self[row[1]].data:
+                self[row[0]].errors=errors
+                self[row[1]].errors=errors
+                flash('Can only set one parameter name')
+                return False
+            if not self[row[0]].data and not self[row[1]].data and self[row[2]].data:
+                self[row[0]].errors=errors
+                self[row[1]].errors=errors
+                flash('Path must have parameter name')
+                return False
+            if self[row[2]].data in paths:
+                self[row[2]].errors=errors
+                flash('Path already exists')
+                return False
+            elif self[row[2]].data:
+                paths.add(self[row[2]].data)
+            if (self[row[0]].data or self[row[1]].data) and not self[row[2]].data:
+                self[row[2]].errors=errors
+                flash('No path set')
+                return False
+            if (self[row[0]].data or self[row[1]].data):
+                if self[row[0]].data:
+                    param = self[row[0]].data
+                    self[row[0]].errors=errors
+                else:
+                    param = self[row[1]].data
+                    self[row[1]].errors=errors
+                if param in params:
+                    flash("Parameter already exists")
+                    return False
+                else:
+                    params.append(param)
+        return True
+            
+    F.validate = validate
+    form = F()
+    if form.validate_on_submit():
+        return redirect(url_for('index'))
+    return render_template('edit_cbt.html', cbt=cbt, form=form,row_list=row_list)
 
 @app.route('/process_cbt', methods = ['POST'])
 @login_required
 def process_cbt():
-	form = PathsForm()
-	choice = request.form.get('paths')
-	form.paths.choices = [(choice,choice)]
-	if form.validate_on_submit():
-		return jsonify(data={'message':'success'})
-	return jsonify(data={'message': 'Failure'})
+    form = PathsForm()
+    choice = request.form.get('paths')
+    form.paths.choices = [(choice,choice)]
+    if form.validate_on_submit():
+        return jsonify(data={'message':'success'})
+    return jsonify(data={'message': 'Failure'})
+

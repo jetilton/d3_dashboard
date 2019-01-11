@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, FloatField, SelectField, HiddenField
 from wtforms.validators import DataRequired
+from app.models import Paths
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -13,14 +14,30 @@ class CbtForm(FlaskForm):
 	latitude = FloatField('latitude', validators = [DataRequired()])
 	longitude = FloatField('longitude', validators = [DataRequired()])
 	add = BooleanField('Add to map')
-	tw_el_path = SelectField('Tailwater Elevation Path')
-	fb_el_path = SelectField('Forebay Elevation Path')
-	flow_out_path = SelectField('Outflow Path')
-	spill_flow_path = SelectField('Spill Flow Path')
-	gen_flow_path = SelectField('Generation Flow Path')
 	submit = SubmitField('Submit')
 
+
+#class PathsForm(FlaskForm):
+#    cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
+#    parameter = SelectField('Parameter', choices = [('',''),
+#                                                    ('forebay_elevation', 'Forebay Elevation'),
+#                                                    ('tailwater_elevation', 'Tailwater Elevation'),
+#                                                    ('flow_out', 'Flow Out')])
+#    custom_parameter = StringField('Custom Parameter')
+#    path = SelectField('Path')
+#    
+
+
+
 class PathsForm(FlaskForm):
-	name = StringField('Name', validators = [DataRequired()])
-	paths = SelectField('Path')
-	cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
+    pass
+    
+    
+
+#    cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
+#    parameter = SelectField('Parameter', choices = [('',''),
+#                                                    ('forebay_elevation', 'Forebay Elevation'),
+#                                                    ('tailwater_elevation', 'Tailwater Elevation'),
+#                                                    ('flow_out', 'Flow Out')])
+#    custom_parameter = StringField('Custom Parameter')
+#    path = SelectField('Path')
