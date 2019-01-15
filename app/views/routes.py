@@ -1,6 +1,6 @@
 from app import app, db
 from flask import render_template, url_for, flash, redirect, request
-from app.forms import LoginForm, CbtForm, PathsForm
+from app.forms import LoginForm, CbtForm, PathsForm, add_paths
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Cbt 
 from werkzeug.urls import url_parse
@@ -76,10 +76,12 @@ def edit_cbt(cbt):
     r = requests.get(url)
     data = json.loads(r.text)[cbt.cbt]
     paths = list(data['timeseries'].keys())
-
-    form = PathsForm(paths)
-    
-    print(form.__dict__)
+    class F(PathsForm):
+        pass
+    F = add_paths(F,paths)
+    form = F()
+    form.cbt_id.data = cbt.id
+    print(form.__dict__.keys())
     if form.validate_on_submit():
         return redirect(url_for('index'))
     return render_template('edit_cbt.html', cbt=cbt, form=form,row_list=form.row_list)
