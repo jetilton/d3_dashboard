@@ -66,6 +66,8 @@ def add_cbt(cbt):
         return redirect(url_for('index'))
     return render_template('add_cbt.html', data=data, cbt_form=cbt_form)
 
+
+
 @app.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
 @login_required
 def edit_cbt(cbt):
@@ -74,73 +76,16 @@ def edit_cbt(cbt):
     r = requests.get(url)
     data = json.loads(r.text)[cbt.cbt]
     paths = list(data['timeseries'].keys())
-    choices = [('','')]+[(path, path) for path in paths]
-    parameter = SelectField('Parameter', choices = [('',''),
-                                                    ('forebay_elevation', 'Forebay Elevation'),
-                                                    ('tailwater_elevation', 'Tailwater Elevation'),
-                                                    ('flow_out', 'Flow Out')])
-    custom_parameter = StringField('Custom Parameter')
-    path_field = SelectField('Path', choices=choices)
-    class F(PathsForm):
-        pass
-    F.cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
-    i=0
-    row_list = []
-    for path in paths:
-        param_name = 'param_{}'.format(str(i))
-        setattr(F, param_name, parameter)
-        custom_param_name = 'custom_param_{}'.format(str(i))
-        setattr(F, custom_param_name, custom_parameter)
-        path_name = 'path_{}'.format(str(i))
-        setattr(F, path_name, path_field)
-        row_list.append((param_name, custom_param_name, path_name))
-        i += 1
-    F.submit = SubmitField('Submit')
-    def validate(self):
-        paths = set()
-        params = list()
-        
-        for row in row_list:
-            errors = tuple(' ')
-            if self[row[0]].data and self[row[1]].data:
-                self[row[0]].errors=errors
-                self[row[1]].errors=errors
-                flash('Can only set one parameter name')
-                return False
-            if not self[row[0]].data and not self[row[1]].data and self[row[2]].data:
-                self[row[0]].errors=errors
-                self[row[1]].errors=errors
-                flash('Path must have parameter name')
-                return False
-            if self[row[2]].data in paths:
-                self[row[2]].errors=errors
-                flash('Path already exists')
-                return False
-            elif self[row[2]].data:
-                paths.add(self[row[2]].data)
-            if (self[row[0]].data or self[row[1]].data) and not self[row[2]].data:
-                self[row[2]].errors=errors
-                flash('No path set')
-                return False
-            if (self[row[0]].data or self[row[1]].data):
-                if self[row[0]].data:
-                    param = self[row[0]].data
-                    self[row[0]].errors=errors
-                else:
-                    param = self[row[1]].data
-                    self[row[1]].errors=errors
-                if param in params:
-                    flash("Parameter already exists")
-                    return False
-                else:
-                    params.append(param)
-        return True
-            
-    F.validate = validate
-    form = F()
+
+    form = PathsForm(paths)
+    
+    print(form.__dict__)
     if form.validate_on_submit():
         return redirect(url_for('index'))
-    return render_template('edit_cbt.html', cbt=cbt, form=form,row_list=row_list)
+    return render_template('edit_cbt.html', cbt=cbt, form=form,row_list=form.row_list)
+
+
+
 
 @app.route('/process_cbt', methods = ['POST'])
 @login_required
