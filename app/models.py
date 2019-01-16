@@ -35,10 +35,9 @@ def load_user(id):
 
 
 class Paths(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    cbt_id = db.Column(db.Integer, db.ForeignKey('cbt.id'), primary_key=True)
+    cbt_id = db.Column(db.Integer, db.ForeignKey('cbt.id'), primary_key = True)
     path = db.Column(db.String(128), primary_key=True)
-    parameter = db.Column(db.String(128),nullable = False)
+    parameter = db.Column(db.String(128), nullable = False)
     value = db.Column(db.Float)
     date = db.Column(db.DateTime)	
 

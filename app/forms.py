@@ -88,25 +88,27 @@ def duplicate_param_check(paths):
     
     return _duplicate_param_check
 
+
 def add_paths(PathsForm, paths):
-    choices = [('','')]+[(path,path) for path in paths]
+    path_choices = [('','')]+[(path,path) for path in paths]
+    parameter_choices = [('',''),
+                         ('Forebay Elevation', 'Forebay Elevation'),
+                         ('Tailwater Elevation', 'Tailwater Elevation'),
+                         ('Flow Out', 'Flow Out')]
     i=0
-    row_list = []
+    form_rows = []
     for path in paths:
         param_name = 'param_{}'.format(str(i))
         custom_param_name = 'custom_param_{}'.format(str(i))
         path_name = 'path_{}'.format(str(i))
-        row_list.append((param_name,custom_param_name,path_name))
-        parameter = SelectField('Parameter', choices = [('',''),
-                                                    ('forebay_elevation', 'Forebay Elevation'),
-                                                    ('tailwater_elevation', 'Tailwater Elevation'),
-                                                    ('flow_out', 'Flow Out')],
+        form_rows.append((param_name,custom_param_name,path_name))
+        parameter = SelectField('Parameter', choices = parameter_choices,
                                 validators = [parameter_check(custom_param_name),duplicate_param_check(paths)])
         parameter.id = param_name
         custom_parameter = StringField('Custom Parameter', validators = [parameter_check(param_name),duplicate_param_check(paths)])
         custom_parameter.id = custom_param_name
     
-        path_field = SelectField('Path', choices = choices, validators = [path_parameter_check(param_name, custom_param_name), duplicate_path_check(paths)])
+        path_field = SelectField('Path', choices = path_choices, validators = [path_parameter_check(param_name, custom_param_name), duplicate_path_check(paths)])
         path_field.id = path_name
         
         setattr(PathsForm, param_name, parameter)
@@ -114,7 +116,9 @@ def add_paths(PathsForm, paths):
         setattr(PathsForm, path_name, path_field)
         i+=1
     setattr(PathsForm, 'submit', SubmitField('Submit'))
-    setattr(PathsForm, 'row_list', row_list)
+    setattr(PathsForm, 'form_rows', form_rows)
+    setattr(PathsForm, 'path_choices', path_choices)
+    setattr(PathsForm, 'parameter_choices', parameter_choices)
     return PathsForm
 
 class PathsForm(FlaskForm):

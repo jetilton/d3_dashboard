@@ -2,7 +2,7 @@ from app import app, db
 from flask import render_template, url_for, flash, redirect, request
 from app.forms import LoginForm, CbtForm, PathsForm, add_paths
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Cbt 
+from app.models import User, Cbt, Paths
 from werkzeug.urls import url_parse
 from flask import abort, jsonify
 import json
@@ -81,10 +81,43 @@ def edit_cbt(cbt):
     F = add_paths(F,paths)
     form = F()
     form.cbt_id.data = cbt.id
-    print(form.__dict__.keys())
+    added_paths = 0
+    
     if form.validate_on_submit():
+        
+        for row in form.form_rows:
+            if form.__dict__[row[0]].data or form.__dict__[row[1]].data:
+                if row[0]:
+                    parameter = form.__dict__[row[0]].data
+                else:
+                    parameter = form.__dict__[row[1]].data
+                path = form.__dict__[row[2]].data
+                p = Paths.query.filter_by(path=path, cbt_id = cbt.id).first()
+                if p:
+                    p.parameter = parameter
+                else:
+                    p = Paths(path = path, cbt_id = cbt.id, parameter= parameter)
+                db.session.add(p)
+                db.session.commit()
+                added_paths+=1
+        flash('{} paths added to {}'.format(str(added_paths), cbt.name))
         return redirect(url_for('index'))
-    return render_template('edit_cbt.html', cbt=cbt, form=form,row_list=form.row_list)
+    
+    elif request.method == 'GET':
+        table_rows = Paths.query.filter_by(cbt_id=cbt.id)
+        form_rows = form.form_rows
+        #rows = query.statement.execute.fetchall()
+        for index,table_row in enumerate(table_rows):
+            parameter = table_row.parameter
+            path = table_row.path
+            if (parameter, parameter) in form.parameter_choices:
+                form.__dict__[form_rows[index][0]].data = parameter
+            else:
+                form.__dict__[form_rows[index][1]].data = parameter
+            form.__dict__[form_rows[index][2]].data = path
+            
+    
+    return render_template('edit_cbt.html', cbt=cbt, form=form,form_rows=form.form_rows)
 
 
 

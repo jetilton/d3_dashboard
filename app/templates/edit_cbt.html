@@ -10,7 +10,7 @@
           <thead>
           </thead>
           <tbody>
-            {% for row in row_list %}
+            {% for row in form_rows %}
             <tr>
               <td>{{ wtf.form_field(form[row[0]]) }}</td>
               <td>{{ wtf.form_field(form[row[1]]) }}</td>
