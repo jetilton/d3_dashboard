@@ -27,9 +27,66 @@ def parameter_check(field_2):
     def _parameter_check(form, field):
         if field.data and form.__dict__[field_2].data:
             raise ValidationError(message)
-    
+            
     return _parameter_check
 
+def path_check(field_2, field_3):
+    message = 'Need to set a path' 
+
+    def _path_check(form, field):
+        if not field.data and  (form.__dict__[field_2].data or form.__dict__[field_3].data):
+            raise ValidationError(message)
+    
+    return _path_check
+
+def path_parameter_check(field_2, field_3):
+    message_1 = 'Need to set a parameter name' 
+    message_2 = 'Need to set a path'
+    def _path_parameter_check(form, field):
+        if field.data and not (form.__dict__[field_2].data or form.__dict__[field_3].data):
+            raise ValidationError(message_1)
+        if not field.data and  (form.__dict__[field_2].data or form.__dict__[field_3].data):
+            raise ValidationError(message_2)
+    
+    return _path_parameter_check
+
+def duplicate_path_check(paths):
+    message = "Can not select duplicate paths"
+    
+        
+    def duplicate_path_check(form, field):
+        data_list = []
+        for i in range(len(paths)):
+            path_name = 'path_{}'.format(str(i))
+            data = form.__dict__[path_name].data
+            if data: data_list.append(data)
+        d = [x for x in data_list if x == field.data]
+        if len(d)>1:
+            raise ValidationError(message)
+        
+    
+    return duplicate_path_check
+
+
+def duplicate_param_check(paths):
+    message = "Parameter already set"
+    
+        
+    def _duplicate_param_check(form, field):
+        data_list = []
+        for i in range(len(paths)):
+            param_name = 'param_{}'.format(str(i))
+            custom_param_name = 'custom_param_{}'.format(str(i))
+            data = form.__dict__[param_name].data
+            if data: data_list.append(data)
+            data = form.__dict__[custom_param_name].data
+            if data: data_list.append(data)
+        d = [x for x in data_list if x == field.data]
+        if len(d)>1:
+            raise ValidationError(message)
+        
+    
+    return _duplicate_param_check
 
 def add_paths(PathsForm, paths):
     choices = [('','')]+[(path,path) for path in paths]
@@ -44,12 +101,12 @@ def add_paths(PathsForm, paths):
                                                     ('forebay_elevation', 'Forebay Elevation'),
                                                     ('tailwater_elevation', 'Tailwater Elevation'),
                                                     ('flow_out', 'Flow Out')],
-                                validators = [parameter_check(custom_param_name)])
+                                validators = [parameter_check(custom_param_name),duplicate_param_check(paths)])
         parameter.id = param_name
-        custom_parameter = StringField('Custom Parameter', validators = [parameter_check(param_name)])
+        custom_parameter = StringField('Custom Parameter', validators = [parameter_check(param_name),duplicate_param_check(paths)])
         custom_parameter.id = custom_param_name
     
-        path_field = SelectField('Path', choices = choices)
+        path_field = SelectField('Path', choices = choices, validators = [path_parameter_check(param_name, custom_param_name), duplicate_path_check(paths)])
         path_field.id = path_name
         
         setattr(PathsForm, param_name, parameter)
