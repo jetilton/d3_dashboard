@@ -62,7 +62,8 @@ def edit_cbt(cbt):
     added_paths = 0
     
     if form.validate_on_submit():
-        
+        Paths.query.filter_by(cbt_id = cbt.id).delete()
+        db.session.commit()
         for row in form.form_rows:
             if form.__dict__[row[0]].data or form.__dict__[row[1]].data:
                 if row[0]:
@@ -79,7 +80,7 @@ def edit_cbt(cbt):
                 db.session.commit()
                 added_paths+=1
         flash('{} paths added to {}'.format(str(added_paths), cbt.name))
-        return redirect(url_for('map/index'))
+        return redirect(url_for('map.index'))
     
     elif request.method == 'GET':
         table_rows = Paths.query.filter_by(cbt_id=cbt.id)
