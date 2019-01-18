@@ -100,5 +100,6 @@ def edit_cbt(cbt):
 
 @bp.route('/<cbt>/modal',methods = ['GET'])
 def cbt_modal(cbt):
-    paths = Paths.query.filter_by(cbt_id = cbt)
-    return render_template('map/cbt_modal.html', cbt=cbt, paths=paths)
+    cbt = Cbt.query.filter_by(cbt=cbt.upper()).first()
+    #paths = Paths.query.filter_by(cbt_id = cbt.cbt)
+    return render_template('map/cbt_modal.html', cbt = cbt.cbt)
