@@ -98,4 +98,7 @@ def edit_cbt(cbt):
     
     return render_template('map/edit_cbt.html', cbt=cbt, form=form,form_rows=form.form_rows)
 
-
+@bp.route('/<cbt>/modal')
+def cbt_modal(cbt):
+    paths = Paths.query.filter_by(cbt_id = cbt.id)
+    return render_template('map/cbt_modal.html', paths=paths)
