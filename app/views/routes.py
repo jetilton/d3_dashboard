@@ -1,15 +1,15 @@
 from app import app, db
 from flask import render_template, url_for, flash, redirect, request
-from app.forms import LoginForm, CbtForm, PathsForm, add_paths
-from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Cbt, Paths
-from werkzeug.urls import url_parse
+from app.forms import CbtForm, PathsForm, add_paths
+from flask_login import login_required
+from app.models import Cbt, Paths
 from flask import abort, jsonify
 import json
 import requests
-from app import csrf
-from wtforms import StringField, SelectField, HiddenField, SubmitField
-from wtforms.validators import DataRequired
+
+
+
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -17,27 +17,7 @@ def index():
     return render_template('index.html', cbts=cbts) 
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
 
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
 
 @app.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
 @login_required

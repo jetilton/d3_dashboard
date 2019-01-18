@@ -15,6 +15,12 @@ login =LoginManager(app)
 bootstrap = Bootstrap(app)
 login.login_view = 'login'
 
+from app.auth import bp as auth_bp
+app.register_blueprint(auth_bp, url_prefix='/auth')
+
+
+
+
 from app.views import routes
 from app import models
 
