@@ -6,18 +6,18 @@ from app.models import Cbt, Paths
 from flask import abort
 import json
 import requests
+from app.map import bp
 
 
 
-
-@app.route('/')
-@app.route('/index')
+@bp.route('/')
+@bp.route('/index')
 def index():
     cbts = Cbt.query.all()
-    return render_template('index.html', cbts=cbts) 
+    return render_template('map/index.html', cbts=cbts) 
 
 
-@app.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
+@bp.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
 @login_required
 def add_cbt(cbt):
     cbt_form = CbtForm()
@@ -41,12 +41,12 @@ def add_cbt(cbt):
             db.session.add(cbt)
             db.session.commit()
             flash('{} added to map'.format(cbt_form.name.data))
-        return redirect(url_for('index'))
-    return render_template('add_cbt.html', data=data, cbt_form=cbt_form)
+        return redirect(url_for('map.index'))
+    return render_template('map/add_cbt.html', data=data, cbt_form=cbt_form)
 
 
 
-@app.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
+@bp.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
 @login_required
 def edit_cbt(cbt):
     cbt = Cbt.query.filter_by(cbt=cbt.upper()).first_or_404()    
@@ -79,7 +79,7 @@ def edit_cbt(cbt):
                 db.session.commit()
                 added_paths+=1
         flash('{} paths added to {}'.format(str(added_paths), cbt.name))
-        return redirect(url_for('index'))
+        return redirect(url_for('map/index'))
     
     elif request.method == 'GET':
         table_rows = Paths.query.filter_by(cbt_id=cbt.id)
@@ -95,6 +95,6 @@ def edit_cbt(cbt):
             form.__dict__[form_rows[index][2]].data = path
             
     
-    return render_template('edit_cbt.html', cbt=cbt, form=form,form_rows=form.form_rows)
+    return render_template('map/edit_cbt.html', cbt=cbt, form=form,form_rows=form.form_rows)
 
 
