@@ -3,7 +3,7 @@ from flask import render_template, url_for, flash, redirect, request
 from app.forms import CbtForm, PathsForm, add_paths
 from flask_login import login_required
 from app.models import Cbt, Paths
-from flask import abort, jsonify
+from flask import abort
 import json
 import requests
 
@@ -15,8 +15,6 @@ import requests
 def index():
     cbts = Cbt.query.all()
     return render_template('index.html', cbts=cbts) 
-
-
 
 
 @app.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
@@ -99,16 +97,4 @@ def edit_cbt(cbt):
     
     return render_template('edit_cbt.html', cbt=cbt, form=form,form_rows=form.form_rows)
 
-
-
-
-@app.route('/process_cbt', methods = ['POST'])
-@login_required
-def process_cbt():
-    form = PathsForm()
-    choice = request.form.get('paths')
-    form.paths.choices = [(choice,choice)]
-    if form.validate_on_submit():
-        return jsonify(data={'message':'success'})
-    return jsonify(data={'message': 'Failure'})
 

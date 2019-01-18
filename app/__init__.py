@@ -18,9 +18,10 @@ login.login_view = 'login'
 from app.auth import bp as auth_bp
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
+from app.map import bp as map_bp
+app.register_blueprint(map_bp, url_prefix='/map')
 
 
-
-from app.views import routes
+#from app.views import routes
 from app import models
 
