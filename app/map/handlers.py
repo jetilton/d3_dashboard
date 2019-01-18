@@ -1,4 +1,4 @@
-from app import app, db
+from app import db
 from flask import render_template, url_for, flash, redirect, request
 from app.map.forms import CbtForm, PathsForm, add_paths
 from flask_login import login_required
