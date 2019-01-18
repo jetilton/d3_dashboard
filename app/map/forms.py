@@ -1,9 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, FloatField, SelectField, HiddenField
+from wtforms import StringField, BooleanField, SubmitField, FloatField, SelectField, HiddenField
 from wtforms.validators import DataRequired, ValidationError
-from app.models import Paths
-from flask import flash
-import copy
+
 
 
 class CbtForm(FlaskForm):
