@@ -49,7 +49,7 @@
 							}
 						});	
 						
-						
+				//functions for modal		
 				function markerOnClick(e) {
                   var id = this.options.id;
                   var url = "/map/"+id+"/modal";
@@ -59,13 +59,7 @@
                       });
                     $('#exampleModalCenter').modal('show');
                 };
-                  
-                  
-                  
-                
-                
-                
-                
+
                 mymap.on('click', function(e) {
                   $('.modal').modal('hide');
                 });

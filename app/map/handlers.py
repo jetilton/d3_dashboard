@@ -102,4 +102,4 @@ def edit_cbt(cbt):
 def cbt_modal(cbt):
     cbt = Cbt.query.filter_by(cbt=cbt.upper()).first()
     #paths = Paths.query.filter_by(cbt_id = cbt.cbt)
-    return render_template('map/cbt_modal.html', cbt = cbt.cbt)
+    return render_template('map/cbt_modal.html', cbt = cbt.cbt, title = cbt.name)
