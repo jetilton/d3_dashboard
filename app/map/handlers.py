@@ -36,6 +36,11 @@ def add_cbt(cbt):
         cbt_form.latitude.data = cbt_data['coordinates']['latitude']
         cbt_form.longitude.data = cbt_data['coordinates']['longitude']
     if request.method == 'POST':
+        if cbt_form.delete.data:
+            Cbt.query.filter_by(cbt = cbt).delete()
+            db.session.commit()
+            flash('{} Deleted'.format(cbt))
+            return redirect(url_for('map.index'))
         if cbt_form.validate_on_submit() and cbt_form.add.data:
             cbt = Cbt(cbt = cbt, name = cbt_form.name.data, latitude = cbt_form.latitude.data, longitude = cbt_form.longitude.data)
             db.session.add(cbt)

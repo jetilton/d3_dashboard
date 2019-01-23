@@ -10,6 +10,7 @@ class CbtForm(FlaskForm):
     longitude = FloatField('longitude', validators = [DataRequired()])
     add = BooleanField('Add to map')
     submit = SubmitField('Submit')
+    delete = SubmitField('Delete')
 
 
 
