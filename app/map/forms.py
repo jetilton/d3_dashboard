@@ -116,7 +116,7 @@ def add_paths(PathsForm, paths):
 
 class PathsForm(FlaskForm):
     
-    cbt_id = HiddenField('CBT ID', validators = [DataRequired()])
+    cbt = HiddenField('CBT', validators = [DataRequired()])
     
     
 
