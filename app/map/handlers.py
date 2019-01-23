@@ -41,7 +41,7 @@ def add_cbt(cbt):
             db.session.add(cbt)
             db.session.commit()
             flash('{} added to map'.format(cbt_form.name.data))
-        return redirect(url_for('map.index'))
+        return redirect(url_for('map.edit_cbt', cbt = cbt.cbt))
     return render_template('map/add_cbt.html', data=data, cbt_form=cbt_form)
 
 
@@ -101,5 +101,5 @@ def edit_cbt(cbt):
 @bp.route('/<cbt>/modal',methods = ['GET'])
 def cbt_modal(cbt):
     cbt = Cbt.query.filter_by(cbt=cbt.upper()).first()
-    #paths = Paths.query.filter_by(cbt_id = cbt.cbt)
-    return render_template('map/cbt_modal.html', cbt = cbt.cbt, title = cbt.name)
+    paths = Paths.query.filter_by(cbt = cbt.cbt)
+    return render_template('map/cbt_modal.html', cbt = cbt.cbt, title = cbt.name, paths = paths)

@@ -1,8 +1,8 @@
-"""firs migration
+"""commit
 
-Revision ID: b74016201b97
+Revision ID: bb8c473f6729
 Revises: 
-Create Date: 2019-01-16 14:27:43.359090
+Create Date: 2019-01-23 13:14:13.283780
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b74016201b97'
+revision = 'bb8c473f6729'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,13 +38,13 @@ def upgrade():
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
     op.create_table('paths',
-    sa.Column('cbt_id', sa.Integer(), nullable=False),
+    sa.Column('cbt', sa.String(length=64), nullable=False),
     sa.Column('path', sa.String(length=128), nullable=False),
     sa.Column('parameter', sa.String(length=128), nullable=False),
     sa.Column('value', sa.Float(), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['cbt_id'], ['cbt.id'], ),
-    sa.PrimaryKeyConstraint('cbt_id', 'path')
+    sa.ForeignKeyConstraint(['cbt'], ['cbt.cbt'], ),
+    sa.PrimaryKeyConstraint('cbt', 'path')
     )
     # ### end Alembic commands ###
 
