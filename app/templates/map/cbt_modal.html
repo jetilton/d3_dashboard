@@ -1,3 +1,28 @@
+<script type="text/javascript">
+            var data = null;
+            var cbt = null;
+            var path = null;
+            var values = null;
+            var parameter = null;
+            var units = null;
+            var parsedData = [];
+            var ParseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S")
+            
+            var url = "http://127.0.0.1:5000/cwms?paths=TDA.Flow-Out.Ave.1Hour.1Hour.CBT-REV&startdate=2016-07-12&enddate=2016-08-12"
+			async function getData(){
+            //Load in the data
+                const rawdata = await d3.json(url)
+        			return rawdata
+        			
+    			}
+            const ts_data = getData()
+            
+        </script>
+
+
+
+
+
 <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
