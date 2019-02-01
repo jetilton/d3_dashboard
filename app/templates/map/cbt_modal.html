@@ -1,5 +1,18 @@
+<link rel="stylesheet" href="/static/elevation_plot.css">
 <script src="/static/d3.js"></script>
-<script type="text/javascript">
+
+
+
+        <script type="text/javascript">
+        
+        function roundMinutes(date) {
+                    date.setMinutes(date.getSeconds() + Math.round(date.getSeconds()/60));
+                    date.setHours(date.getHours() + Math.round(date.getMinutes()/60));
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                    return date;
+                }
+            
             var data = null;
             var cbt = null;
             var path = null;
@@ -9,20 +22,260 @@
             var parsedData = [];
             var ParseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S")
             
-            var url = "http://127.0.0.1:5000/map/cwms?paths=TDA.Flow-Out.Ave.1Hour.1Hour.CBT-REV&startdate=2016-07-12&enddate=2016-08-12"
-			async function getData(){
+			async function getData(url){
             //Load in the data
                 const rawdata = await d3.json(url)
         			return rawdata
         			
     			}
-            const ts_data = getData()
+    			
+    		var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S");
+    		var rowConverter = function(d, parseTime){
+        		return{'flag':d['flag'], 'value':parseFloat(d['value']), 'date':parseTime(d['date'])}
+    		}
+    		var parseData = function(data){
+        		var new_data = {}
+        		for(item of data){
+            		var vals = []
+            		var i
+            		len = item.values.length
+            		for (i=0; i<len; ++i){
+                		vals[i] = rowConverter(item.values[i], parseTime);
+            		}
+            		item.values = vals;
+            		
+            		new_data[item.parameter]=item;
+        		}
+                return new_data;
+                }
+                
+            var elevationPlot = function(data){
+                var fb = data['Elev-Forebay'];
+                var tw = data['Elev-Tailwater'];
+                
+                var fb_x_min = d3.min(fb.values, function(d) { return d.date; });
+                var fb_x_max = d3.max(fb.values, function(d) { return d.date; });
+                
+                var fb_y_min = d3.min(fb.values, function(d) { return d.value; });
+                var fb_y_max = d3.max(fb.values, function(d) { return d.value; });
+                
+                var tw_x_min = d3.min(tw.values, function(d) { return d.date; });
+                var tw_x_max = d3.max(tw.values, function(d) { return d.date; });
+                
+                var tw_y_min = d3.min(tw.values, function(d) { return d.value; });
+                var tw_y_max = d3.max(tw.values, function(d) { return d.value; });
+                
+                var x_min = d3.min([fb_x_min,tw_x_min]);
+                var x_max = d3.max([fb_x_max,tw_x_max]);
+                
+                var y_min = d3.min([fb_y_min,tw_y_min]);
+                var y_max = d3.max([fb_y_max,tw_y_max]);
+
+                
+                var svgWidth = 500;
+                var svgHeight = svgWidth/1.6;
+                
+                var margin = {top: 30, right: 60, bottom: 50, left: 60};
+                
+                var width = svgWidth - margin.left - margin.right;
+                var height = svgHeight - margin.top - margin.bottom; 
+                
+                
+                var xAxisScale = d3.scaleTime()
+                        .domain([d3.timeDay.offset(x_min, 0),d3.timeDay.offset(x_max, 0)])
+                        .range([0, width]);
+                    
+                var yAxisScale = d3.scaleLinear()
+                        .domain([y_min-y_min*.5, y_max+y_max*.1])
+                        .range([height,0]);
+                
+                var xAxis = d3.axisBottom(xAxisScale)
+                        .tickFormat(d3.timeFormat("%m-%d"))
+                        .ticks(8, "s");
+                                
+                var yAxis = d3.axisLeft(yAxisScale)
+                        .ticks(5, "s");  
+                
+                //create svg
+                var svg = d3.select("#plot")
+                        .append('svg')
+                            .attr('width', svgWidth)
+                            .attr('height', svgHeight)
+                        .append('g')
+                            .attr('class', 'chart')
+                            .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+                
+                // clipping 
+               
+                var clipRect =svg.append('defs')
+                        .append('clipPath')
+                            .attr('id', 'clip')
+                        .append('rect')
+                            .attr('width', width)
+                            .attr('height', height);
+                               
+                //add axis
+                var gX = svg.insert('g')
+                      .attr('class', 'x_axis')
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(xAxis);
+                      
+                var gY = svg.insert('g',)
+                        .attr("class", "y_axis")
+                        
+                        .call(yAxis);
+               //add line group 
+                var gLine = svg.insert('g', '.listener-rect')
+                    .attr('class', 'line-group')
+                    .attr('clip-path', 'url(#clip)');
+                    
+                    line = d3.line()
+    					.x(function(d) { return xAxisScale(d.date); })
+    					.y(function(d) { return yAxisScale(d.value); });
+    				
+    				fb_path = gLine.append("path")
+    					.datum(fb.values)
+    					.attr("class", "line forebay")
+    					.attr("d", line);
+    					
+					tw_line = d3.line()
+    					.x(function(d) { return xAxisScale(d.date); })
+    					.y(function(d) { return yAxisScale(d.value); });
+    				
+    				tw_path = gLine.append("path")
+    					.datum(tw.values)
+    					.attr("class", "line tailwater")
+    					.attr("d", line);  
+    					
+    					
+    		//tooltip
+    		var gToolTip = svg.insert('g', '.listener-rect')
+                    .attr('class', 'tooltip-group');
+                    
+        	var tooltipLine = gToolTip.append("line")
+				   .attr("stroke", "none");
+    		
+    				
+    		//add the listner group and rect for all mouse events
+    		var gListener = svg.append('g')
+                    	.attr('class', 'listener-group')
+                    	.attr('clip-path', 'url(#clip)');
+                    	
+                        
+             var listenerRect = gListener
+                        .append('rect')
+                          .attr('class', 'listener-rect')
+                          .attr('x', 0)
+                          .attr('y', -margin.top)
+                          .attr('width', width+width*.05)
+                          .attr('height', height+height*.05)
+                          .style('opacity', 0)
+                          .on("mousemove", function () {
+                            //x's and y's for tooltips
+                            cx = d3.mouse(this)[0];
+                            cy = d3.mouse(this)[1];
+                            x = roundMinutes(xAxisScale.invert(cx))
+                            filterByDate = function(item){
+                                    return item.date == x.toString();
+                                };                      
+                            getY = function(x_min,x_max,data){
+                                if(x<x_min){
+                                    return data[0].value;
+                                }else if(x>x_max){
+                                    return data[data.length-1].value;
+                                }else{
+                                    return data.filter(filterByDate)[0].value;
+                                }
+                            } 
+                            fb_y = getY(x_min=fb_x_min, fb_x_max, fb.values)
+                            tw_y = getY(x_min=tw_x_min, tw_x_max, tw.values)
+                            
+                        //update line
+                            tooltipLine.attr("class", "tool-tip-visible")
+                                .attr("x1", cx)
+                                .attr("x2", cx)
+                                .attr("y1", -height)
+                                .attr("y2", height)
+                                
+                        //update boxes position
+                            d3.select('#tooltip') 
+                                .style('left', cx+75+'px')
+                                .style('top', margin.top+margin.bottom+'px')
+                                .select(".twvalue")
+                                .text(tw_y);
+                            d3.select('#tooltip') 
+                                .select(".fbvalue")
+                                .text(fb_y);
+                            d3.select('#tooltip')
+                                .select(".date")
+                                .text(x.toLocaleString("en-US"));  
+                                
+                                
+                        //show box
+                            d3.select('#tooltip') 
+                                .classed("hidden", false);
+
+                                
+                        })
+                        .on("mouseout", function () {
+                            tooltipLine.attr("class", "tool-tip-invisible");
+                            d3.select('#tooltip') 
+                                .classed("hidden", true);
+                        });
+            
+            
+            
+            var zoom = d3.zoom()
+                    .scaleExtent([1, 5])
+                    .translateExtent([[0, -height], [width*2+margin.left+margin.right, height*2]])
+                    .on('zoom', zoomed);
+                 
+                // Listen for zoom events
+                listenerRect.call(zoom);  
+                
+            function zoomed(){
+                
+                    var transform = d3.event.transform;
+                    // create new scale ojects based on event
+                    var new_xScale = transform.rescaleX(xAxisScale)
+                    var new_yScale = transform.rescaleY(yAxisScale)
+
+                    // update axes
+                    gX.call(xAxis.scale(new_xScale));
+                    gY.call(yAxis.scale(new_yScale));
+                    
+                    //update path
+                    newLine = d3.line()
+                        .x(function(d) { return new_xScale(d.date); })
+    					.y(function(d) { return new_yScale(d.value); });
+                    
+                    fb_path.attr('d', newLine);
+                    tw_path.attr('d', newLine);
+                     
+                };		  			   
+                          
+                          
+            
+            } 
+            
+            
+            var url = "http://127.0.0.1:5000/map/cwms?paths={{ fb.path }}&paths={{ tw.path }}&lookback=7"
+            const ts_data = getData(url)
+            data = ts_data.then(parseData).then(elevationPlot)
+            
+            
+            
+            
             
         </script>
 
 
-
-
+<div id ="tooltip" class = "tooltip hidden">
+    <p><strong>Date: <span class = "date"></span></strong></p>
+    
+    <p>Forebay (ft): <span class = "fbvalue"></span><br>
+    Tailwater (ft): <span class = "twvalue"></span></p>
+</div>
 
 <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -43,6 +296,7 @@
             </tr>
           </thead>
           <tbody>
+          
           {% for path in paths %}
             <tr>
               <th scope="row">{{ path.parameter }}</th>
@@ -60,7 +314,9 @@
         </p>
             <div class="collapse" id="collapseExample">
               <div class="card card-body">
-                Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
+                  <div id="plot">
+
+                  </div>
               </div>
             </div>
       </div>

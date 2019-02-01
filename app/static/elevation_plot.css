@@ -1,0 +1,55 @@
+.line {
+		fill: none;
+		stroke-width: 3;
+}
+.forebay {
+		stroke: teal;		
+}
+			
+.tailwater {
+		stroke: #d94801;	
+}		
+			
+			
+.hidden {
+  stroke: none;
+}
+
+.listener-group {
+  // ..
+  pointer-events: all;
+}
+
+line.tool-tip-visible{
+    stroke: black;
+    stroke-width: .5;
+}
+
+circle.tool-tip-visible{
+    fill: orange;
+}
+
+.tooltip {
+				position: absolute;
+				width: 150px;
+				height: 35px;
+				padding: 5px;
+				background-color: none;
+				border-radius: 10px;
+				border:1px solid teal;
+				pointer-events: none;
+				color: black;
+				
+}
+
+		
+.tooltip.hidden {
+				display: none;
+}
+			
+.tooltip p {
+				margin: 0;
+				font-family: sans-serif;
+				font-size: 10px;
+				line-height: 12px;
+}

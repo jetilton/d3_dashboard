@@ -148,7 +148,14 @@ def edit_cbt(cbt):
 def cbt_modal(cbt):
     cbt = Cbt.query.filter_by(cbt=cbt.upper()).first()
     paths = Paths.query.filter_by(cbt = cbt.cbt)
-    return render_template('map/cbt_modal.html', cbt = cbt.cbt, title = cbt.name, paths = paths)
+    fb = Paths.query.filter_by(cbt = cbt.cbt, parameter = "Forebay Elevation").first()
+    
+    tw = Paths.query.filter_by(cbt = cbt.cbt, parameter = "Tailwater Elevation").first()
+    return render_template('map/cbt_modal.html', cbt = cbt.cbt, 
+                           title = cbt.name, 
+                           paths = paths, 
+                           fb = fb,
+                           tw = tw)
 
 @bp.route('/cwms', methods = ['GET', 'POST'])
 def cwms():
@@ -167,19 +174,26 @@ def cwms():
         start_date = args['startdate']
         end_date = args['enddate']
         lookback = False
-    url = time_window_url(paths, public=True, lookback = lookback, start_date = start_date, end_date = end_date, timezone = 'PST')
+    url = time_window_url(paths, public=True, lookback = lookback, start_date = start_date, end_date = end_date, timezone = 'GMT')
     requests.packages.urllib3.disable_warnings() 
     data = json.loads(requests.get(url, verify = False).text)
+    print(url)
     data_list = []
     for key,value in data.items():
-        value['cbt'] = key
-        pathname = list(value['timeseries'])[0]
-        value['pathname'] = pathname
-        vals = value['timeseries'][pathname]['values']
-        ts_list = []
-        for val in vals:
-            ts_list.append({'date':val[0],'value':val[1],'flag':val[2]})
-        value['timeseries'] = value['timeseries'][pathname]
-        value['timeseries']['values'] = ts_list
-        data_list.append(value)
+        print(value.keys())
+        lat = value['coordinates']['latitude']
+        long = value['coordinates']['longitude']
+        name = value['name']
+        for k,v in value['timeseries'].items():
+            v['pathname'] = k
+            v['latitude'] = lat
+            v['longitude'] = long
+            v['name'] = name
+            vals = []
+            for val in v['values']:
+                vals.append({'date':val[0],'value':val[1],'flag':val[2]})
+            v['values'] = vals
+            data_list.append(v)
+
+    print(paths)
     return jsonify(data_list)
