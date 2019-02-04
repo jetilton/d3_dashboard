@@ -198,35 +198,42 @@
                                 .attr("y2", height)
                                 
                         //update boxes position
-                            d3.select('#tooltip') 
+                            d3.select('#mytooltip') 
                                 .style('left', cx+75+'px')
                                 .style('top', margin.top+margin.bottom+'px')
-                                .select(".twvalue")
+                                .select("#twvalue")
                                 .text(tw_y);
-                            d3.select('#tooltip') 
-                                .select(".fbvalue")
+                            d3.select('#mytooltip') 
+                                .select("#fbvalue")
                                 .text(fb_y);
-                            d3.select('#tooltip')
-                                .select(".date")
+                            d3.select('#mytooltip')
+                                .select("#date")
                                 .text(x.toLocaleString("en-US"));  
                                 
-                                
                         //show box
-                            d3.select('#tooltip') 
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", false);
+                            d3.select('.tooltipdata#fbvalue') 
+                                .classed("hidden", false);
+                            d3.select('.tooltipdata#twvalue') 
                                 .classed("hidden", false);
 
                                 
                         })
                         .on("mouseout", function () {
                             tooltipLine.attr("class", "tool-tip-invisible");
-                            d3.select('#tooltip') 
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", true);
+                            d3.select('.tooltipdata#fbvalue') 
+                                .classed("hidden", true);
+                            d3.select('.tooltipdata#twvalue') 
                                 .classed("hidden", true);
                         });
             
             
             
             var zoom = d3.zoom()
-                    .scaleExtent([1, 5])
+                    .scaleExtent([1, 1])
                     .translateExtent([[0, -height], [width*2+margin.left+margin.right, height*2]])
                     .on('zoom', zoomed);
                  
@@ -270,12 +277,7 @@
         </script>
 
 
-<div id ="tooltip" class = "tooltip hidden">
-    <p><strong>Date: <span class = "date"></span></strong></p>
-    
-    <p>Forebay (ft): <span class = "fbvalue"></span><br>
-    Tailwater (ft): <span class = "twvalue"></span></p>
-</div>
+
 
 <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -315,7 +317,12 @@
             <div class="collapse" id="collapseExample">
               <div class="card card-body">
                   <div id="plot">
-
+                        <div id ="mytooltip" class = "plottooltip" style = "z-index: 10000">
+                            <p><strong>Date: <span id = "date" class = "tooltipdata hidden"></span></strong></p>
+                            
+                            <p>Forebay (ft): <span id = "fbvalue" class = "tooltipdata hidden"></span><br>
+                            Tailwater (ft): <span id = "twvalue" class = "tooltipdata hidden"></span></p>
+                        </div>
                   </div>
               </div>
             </div>
