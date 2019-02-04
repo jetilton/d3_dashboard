@@ -47,7 +47,8 @@
             		new_data[item.parameter]=item;
         		}
                 return new_data;
-                }
+                }    
+                
                 
             var elevationPlot = function(data){
                 var fb = data['Elev-Forebay'];
@@ -141,7 +142,7 @@
                       .attr("x",0 - (height / 2))
                       .attr("dy", "1em")
                       .style("text-anchor", "middle")
-                      .text("Elevation");      
+                      .text("Elevation (ft)");      
 
                 
                //add line group 
@@ -256,20 +257,13 @@
             var url = "http://127.0.0.1:5000/map/cwms?paths={{ fb.path }}&paths={{ tw.path }}&lookback=7"
             const ts_data = getData(url)
             data = ts_data.then(parseData).then(elevationPlot)
-            
-            
-            
-            
-            
+         
         </script>
-
-
-
 
 <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">{{ title }}</h5>
+        <h5 class="modal-title" id="exampleModalLongTitle"><strong>{{ title }}</strong></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -304,12 +298,26 @@
             <div class="collapse" id="collapseExample">
               <div class="card card-body">
                   <div id="plot">
-                        <div id ="mytooltip" class = "plottooltip" style = "z-index: 10000">
-                            <p><strong>Date: <span id = "date" class = "tooltipdata hidden"></span></strong></p>
-                            
-                            <p>Forebay (ft): <span id = "fbvalue" class = "tooltipdata hidden"></span><br>
-                            Tailwater (ft): <span id = "twvalue" class = "tooltipdata hidden"></span></p>
-                        </div>
+                       <table id="mytooltip">
+                       <col span="1" class="col1">
+                       <col span="2" class="col2">
+                       
+                          <tr>
+                            <td></td>
+                            <td style= "text-align: left">Date:</td>
+                            <td id = "date" class = "tooltipdata hidden"></strong></th>
+                          </tr>
+                          <tr>
+                            <td><div class = "legend" id="fb-legend"></div></td>
+                            <td "text-align: left">Forebay (ft):</td>
+                            <td id = "fbvalue" class = "tooltipdata hidden"></td>
+                          </tr>
+                          <tr>
+                            <td><div class = "legend" id="tw-legend"></div></td>
+                            <td "text-align: left">Tailwater (ft):</td>
+                            <td id = "twvalue" class = "tooltipdata hidden"></td>
+                          </tr>
+                        </table> 
                   </div>
               </div>
             </div>
