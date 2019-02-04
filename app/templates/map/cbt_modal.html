@@ -1,8 +1,5 @@
 <link rel="stylesheet" href="/static/elevation_plot.css">
 <script src="/static/d3.js"></script>
-
-
-
         <script type="text/javascript">
         
         function roundMinutes(date) {
@@ -219,7 +216,7 @@
                                 .attr("y1", -height)
                                 .attr("y2", height)
                                 
-                        //update boxes position
+                        //update data
                             d3.select('#mytooltip') 
                                 .select("#twvalue")
                                 .text(tw_y);
@@ -236,9 +233,7 @@
                             d3.select('.tooltipdata#fbvalue') 
                                 .classed("hidden", false);
                             d3.select('.tooltipdata#twvalue') 
-                                .classed("hidden", false);
-
-                                
+                                .classed("hidden", false);           
                         })
                         .on("mouseout", function () {
                             tooltipLine.attr("class", "tool-tip-invisible");
@@ -249,17 +244,11 @@
                             d3.select('.tooltipdata#twvalue') 
                                 .classed("hidden", true);
                         });
-            
-            
             } 
-            
-            
-            var url = "http://127.0.0.1:5000/map/cwms?paths={{ fb.path }}&paths={{ tw.path }}&lookback=7"
+            var url = "http://127.0.0.1:5000/main/cwms?paths={{ fb.path }}&paths={{ tw.path }}&lookback=7"
             const ts_data = getData(url)
             data = ts_data.then(parseData).then(elevationPlot)
-         
         </script>
-
 <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -269,7 +258,6 @@
         </button>
       </div>
       <div class="modal-body">
-      
       <table class="table table-hover">
           <thead>
             <tr>
@@ -279,13 +267,11 @@
             </tr>
           </thead>
           <tbody>
-          
           {% for path in paths %}
             <tr>
               <th scope="row">{{ path.parameter }}</th>
               <td>{{ path.date }}</td>
               <td>{{ path.value }}</td>
-              
             </tr>
             {% endfor %}
           </tbody>
@@ -301,7 +287,6 @@
                        <table id="mytooltip">
                        <col span="1" class="col1">
                        <col span="2" class="col2">
-                       
                           <tr>
                             <td></td>
                             <td style= "text-align: left">Date:</td>

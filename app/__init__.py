@@ -30,6 +30,8 @@ def create_app(config_class=Config):
     from app.map import bp as map_bp
     app.register_blueprint(map_bp, url_prefix='/map')
     
+    from app.main import bp as main_bp
+    app.register_blueprint(main_bp, url_prefix='/main')
     return app
 
 
