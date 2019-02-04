@@ -8,15 +8,11 @@ import json
 import requests
 from app.map import bp
 
-
-
-
 @bp.route('/')
 @bp.route('/index')
 def index():
     cbts = Cbt.query.all()
     return render_template('map/index.html', cbts=cbts) 
-
 
 @bp.route('/add_cbt/<cbt>', methods = ['GET', 'POST'])
 @login_required
@@ -49,8 +45,6 @@ def add_cbt(cbt):
             flash('{} added to map'.format(cbt_form.name.data))
         return redirect(url_for('map.edit_cbt', cbt = cbt.cbt))
     return render_template('map/add_cbt.html', data=data, cbt_form=cbt_form)
-
-
 
 @bp.route('/edit_cbt/<cbt>', methods = ['GET','POST'])
 @login_required
@@ -116,3 +110,6 @@ def cbt_modal(cbt):
                            fb = fb,
                            tw = tw)
 
+@bp.route('/<cbt>/dash', methods = ['GET'])
+def dash_cbt(cbt):
+        return render_template('dash/dash.html')

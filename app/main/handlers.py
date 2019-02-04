@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-
 import json
 import requests
 from app.main import bp
 from flask_restful import reqparse
 from datetime import datetime
 from flask import jsonify
-
-
-
-
 
 def time_window_url(paths, public=True, lookback = 7, start_date = False, end_date = False, timezone = 'PST'):
     """
