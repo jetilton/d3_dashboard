@@ -88,7 +88,8 @@ def add_paths(PathsForm, paths):
     parameter_choices = [('',''),
                          ('Forebay Elevation', 'Forebay Elevation'),
                          ('Tailwater Elevation', 'Tailwater Elevation'),
-                         ('Flow Out', 'Flow Out')]
+                         ('Flow Out', 'Flow Out'),
+                         ('Flow In', 'Flow In')]
     i=0
     form_rows = []
     for path in paths:
