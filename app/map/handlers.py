@@ -110,6 +110,3 @@ def cbt_modal(cbt):
                            fb = fb,
                            tw = tw)
 
-@bp.route('/<cbt>/dash', methods = ['GET'])
-def dash_cbt(cbt):
-        return render_template('dash/dash.html')

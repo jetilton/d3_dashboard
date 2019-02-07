@@ -31,20 +31,20 @@
         		return{'flag':d['flag'], 'value':parseFloat(d['value']), 'date':parseTime(d['date'])}
     		}
     		var parseData = function(data){
-        		var new_data = {}
-        		for(item of data){
-            		var vals = []
-            		var i
-            		len = item.values.length
-            		for (i=0; i<len; ++i){
-                		vals[i] = rowConverter(item.values[i], parseTime);
-            		}
-            		item.values = vals;
-            		
-            		new_data[item.parameter]=item;
-        		}
-                return new_data;
-                }    
+            		var new_data = {}
+            		for(item of data){
+                		var vals = []
+                		var i
+                		len = item.values.length
+                		for (i=0; i<len; ++i){
+                    		vals[i] = rowConverter(item.values[i], parseTime);
+                		}
+                		item.values = vals;
+                		
+                		new_data[item.parameter]=item;
+                		}
+                    return new_data;
+            }    
                 
                 
             var elevationPlot = function(data){

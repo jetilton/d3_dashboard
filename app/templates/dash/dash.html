@@ -1,6 +1,57 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-hello
+<script src="/static/d3.js"></script>
+<script type="text/javascript">
+            
+            
+            var parseTime = d3.timeParse("%Y-%m-%d");
+    		var rowConverter = function(d, parseTime){
+            		return{'value':parseFloat(d['value']), 'date':parseTime(d['date'])}
+    		};
+            
+             var parseTimeSeries = function(data){
+                		var vals = []
+                		var i
+                		len = data.length
+                		for (i=0; i<len; ++i){
+                    		vals[i] = rowConverter(data[i], parseTime);
+                		}
+                    return vals;
+            };  
+            
+            var getNewData = function(data){
+                new_data = {}
+                d = data['obs_flow']['timeseries']
+                new_data['current_year'] = parseTimeSeries(d['current_year'])
+                quants = {}
+                for(var key in d['quantiles']){
+                    ts = parseTimeSeries(d['quantiles'][key])
+                		quants[key] =ts
+                }
+                new_data['quantiles'] = quants
+                return new_data
+            }
+                 
+			async function getData(url){
+            //Load in the data
+                const rawdata = await d3.json(url)
+        			return rawdata
+        			
+    			}
+    			
+    		var hydrographPlot = function(data){
+                var current_year = data['current_year'];
+               return current_year
+            }
+    			
+
+    		var data;
+            var url = "http://127.0.0.1:5000/dash/hydrographdata/{{ cbt }}"
+            const ts_data = getData(url).then(getNewData).then(hydrographPlot)
+            
+            
+            
+        </script>
 
 {% endblock %}
