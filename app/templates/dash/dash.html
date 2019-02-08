@@ -4,7 +4,21 @@
 <script src="/static/d3.js"></script>
 <link rel="stylesheet" href="/static/dash/hydrograph.css"> 
 <script type="text/javascript">
-   
+           function roundDay(date) {
+                    date.setUTCMinutes(date.getMinutes() + Math.round(date.getUTCSeconds()/60));
+                    date.setUTCHours(date.getUTCHours() + Math.round(date.getUTCMinutes()/60));
+                    if(Math.round(date.getUTCHours()/24)==1){
+                        day = 1;
+                    }else{
+                        day = 0;
+                    }
+                    date.setUTCDate(date.getUTCDate()+day);  
+                    date.setUTCMinutes(0);
+                    date.setUTCSeconds(0);
+                    date.setUTCMilliseconds(0);
+                    date.setUTCHours(7);
+                    return date;
+                }
             
             var parseTime = d3.timeParse("%Y-%m-%d");
     		var rowConverter = function(d, parseTime){
@@ -147,15 +161,21 @@
                         .ticks(5, "s");  
                 
                 //create svg
-                var svg = d3.select("#hydrograph")
-                        .append('svg')
-                            .attr('width', svgWidth)
-                            .attr('height', svgHeight)
+                var svg = d3.select("svg")
+                        
                         .append('g')
                             .attr('class', 'chart')
                             .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
                             
-                            
+                // clipping 
+               
+                var clipRect =svg.append('defs')
+                        .append('clipPath')
+                            .attr('id', 'clip')
+                        .append('rect')
+                            .attr('width', width)
+                            .attr('height', height);
+                                           
                             
                 var gX = svg.insert('g')
                       .attr('class', 'x_axis')
@@ -199,10 +219,16 @@
                     .datum(oqHighLow)
                     .attr("class", "area oq")
                     .attr("d", area)
+                    
+                gArea.append("path")
+                    .datum(fqHighLow)
+                    .attr("class", "area fq")
+                    .attr("d", area)
                       
             //add line group 
                 var gLine = svg.insert('g')
                     .attr('class', 'line-group')
+                    .attr('clip-path', 'url(#clip)');
                     
                     line = d3.line()
     					.x(function(d) { return xAxisScale(d.date); })
@@ -215,7 +241,61 @@
     				
                     
                
-               return oq_y_max
+             //tooltip
+    		var gToolTip = svg.insert('g', '.listener-rect')
+                    .attr('class', 'tooltip-group');
+                    
+        	var tooltipLine = gToolTip.append("line")
+				   .attr("stroke", "none");
+    		
+    				
+    		//add the listner group and rect for all mouse events
+    		var gListener = svg.append('g')
+                    	.attr('class', 'listener-group')
+                    	.attr('clip-path', 'url(#clip)');
+                    	
+                    	
+                    	
+             var listenerRect = gListener
+                        .append('rect')
+                          .attr('class', 'listener-rect')
+                          .attr('x', 0)
+                          .attr('y', -margin.top)
+                          .attr('width', width+width*.05)
+                          .attr('height', height+height*.05)
+                          .style('opacity', 0)
+                          .on("mousemove", function () {
+                            //x's and y's for tooltips
+                            cx = d3.mouse(this)[0];
+                            cy = d3.mouse(this)[1];
+                           console.log(xAxisScale.invert(cx),roundDay(xAxisScale.invert(cx)) )
+                        //update line
+                            tooltipLine.attr("class", "tool-tip-visible")
+                                .attr("x1", cx)
+                                .attr("x2", cx)
+                                .attr("y1", -height)
+                                .attr("y2", height) 
+                        
+                        //show data
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", false);
+                            d3.select('.tooltipdata#fbvalue') 
+                                .classed("hidden", false);
+                            d3.select('.tooltipdata#twvalue') 
+                                .classed("hidden", false);
+                                
+                                
+                        })
+                        .on("mouseout", function () {
+                            tooltipLine.attr("class", "tool-tip-invisible");
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", true);
+                            d3.select('.tooltipdata#fbvalue') 
+                                .classed("hidden", true);
+                            d3.select('.tooltipdata#twvalue') 
+                                .classed("hidden", true);
+                        });
+                    	
             }
     			
 
@@ -229,6 +309,36 @@
             
         </script>
     <div class="row">
-        <div class="col-lg" id ="hydrograph"></div>
+        <div class="col-lg" id ="hydrograph">
+            <svg width = "1140" height = "712.5">
+                <foreignobject class="node" x="100" y="50" width="1000" height="100">
+                    <table id="mytooltip">
+                               <col span="1" class="col1">
+                               <col span="5" class="col2">
+                                  <tr>
+                                    <td></td>
+                                    <td style= "text-align: left">Date:</td>
+                                    <td id = "date" class = "tooltipdata hidden"></strong></th>
+                                  </tr>
+                                  <tr>
+                                    <td><div class = "legend" id="ob-legend"></div></td>
+                                    <td "text-align: left">Observed (kcfs):</td>
+                                    <td id = "obvalue" class = "tooltipdata hidden"></td>
+                                  </tr>
+                                  <tr>
+                                    <td><div class = "legend" id="oq-legend"></div></td>
+                                    <td "text-align: left">Observed Historical (kcfs):</td>
+                                    <td id = "oqvalue" class = "tooltipdata hidden"></td>
+                                  </tr>
+                                  <tr>
+                                    <td><div class = "legend" id="fq-legend"></div></td>
+                                    <td "text-align: left">Forecast (kcfs):</td>
+                                    <td id = "fqvalue" class = "tooltipdata hidden"></td>
+                                  </tr>
+                                </table> 
+                    </foreignobject>
+            </svg>
+        
+        </div>
     </div>
 {% endblock %}
