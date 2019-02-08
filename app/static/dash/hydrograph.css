@@ -1,11 +1,67 @@
 .line {
 		fill: none;
 		stroke-width: 3;
-		stroke: teal;	
+		stroke: #d94801;	
 }
+
+
 
 .oq {
 		fill: grey;
+		opacity: .5;
+			
+}
+
+
+.fq {
+		fill: grey;
 		opacity: .8;
 			
+}
+
+
+
+.hidden {
+  stroke: none;
+}
+
+.listener-group {
+  // ..
+  pointer-events: all;
+}
+
+line.tool-tip-visible{
+    stroke: black;
+    stroke-width: .5;
+}
+
+
+.legend {
+				
+				width: 10px;
+				height: 10px;
+				float: left;
+				vertical-align: bottom;
+				bottom: 0;
+				font-family: sans-serif;
+				font-size: 15px;
+				line-height: 18px;
+    				
+}
+
+#ob-legend {
+
+		background-color: #d94801;	
+}
+
+#fq-legend {
+
+		background-color: grey;	
+		opacity: .8;
+}
+
+#oq-legend {
+
+		background-color: grey;	
+		opacity: .5;
 }
