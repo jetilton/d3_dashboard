@@ -31,10 +31,23 @@ def dash_data(cbt):
     now = datetime.datetime.utcnow()
     cbt = Cbt.query.filter_by(cbt=cbt).first()
     obs_flow_path = Paths.query.filter_by(cbt=cbt.cbt, parameter = 'Flow In').first().path
+    print(obs_flow_path)
     obs_flow = get_cwms(paths = obs_flow_path, 
                         col_names = ['obs_flow'], lookback = 30000, timezone = 'GMT')
+    
     obs_meta = obs_flow.__dict__['metadata']
     obs_meta['obs_flow'].pop('flags')
+    obs_flow_diff = obs_flow.diff()
+    
+    #de-spike
+    obs_flow = obs_flow[(obs_flow_diff["obs_flow"]<obs_flow_diff["obs_flow"].mean()+\
+              obs_flow_diff["obs_flow"].std()*6) &\
+            (obs_flow_diff["obs_flow"]>obs_flow_diff["obs_flow"].mean()-\
+              obs_flow_diff["obs_flow"].std()*6)]
+    obs_flow = obs_flow[(obs_flow_diff["obs_flow"]<obs_flow_diff["obs_flow"].mean()+\
+              obs_flow_diff["obs_flow"].std()*6) &\
+            (obs_flow_diff["obs_flow"]>obs_flow_diff["obs_flow"].mean()-\
+              obs_flow_diff["obs_flow"].std()*6)]
     obs_flow = obs_flow.groupby(pd.Grouper(freq = 'd')).mean()          
     
     #get columns to use in transpose/pivot
@@ -44,17 +57,19 @@ def dash_data(cbt):
     obs_flow['year'] = [x.year for x in obs_flow['date']]
     obs_flow['water_year'] = obs_flow.apply(water_year,axis = 1)
     obs_flow.set_index('date', inplace = True)
+    
     obs_pivot = pd.pivot_table(obs_flow,index=['month', 'day'],columns=['water_year'],
                values='obs_flow',aggfunc=np.sum)
     
     #don't want to use current year in quantile calcs
     obs_pivot = obs_pivot.loc[:,:now.year-1]
-    
     quants = [str(i/100.0) for i in range(0, 105, 5)]
     obs_quant = pd.DataFrame(data = obs_pivot.quantile(q = float(quants[0]),axis = 1))
+    obs_quant.columns = ['0.00']
     for quant in quants[1:]:
         obs_quant[quant] = obs_pivot.quantile(q = float(quant),axis = 1)
     obs_quant.reset_index(inplace = True)
+    
     #set dates for easier plotting
     wy_start_index =obs_quant[(obs_quant['month']==8) &(obs_quant['day']==1)].index[0]
     this_year = obs_quant.iloc[wy_start_index:]
@@ -63,14 +78,20 @@ def dash_data(cbt):
     obs['date'] = obs.apply(get_date,now=now,axis = 1)
     obs.set_index('date', inplace = True)
     timeseries = {}
-    for column in obs.loc[:,'0.05':].columns:
+    for column in obs.loc[:,'0.00':].columns:
         ts = [{'date':i, 'value':v} for i,v in obs[column].iteritems()]
         timeseries.update({column:ts})
     current_year = obs_flow[obs_flow['water_year']==now.year]
     current_year_vals = [{'date':str(i).split(' ')[0], 'value':v} for i,v in current_year['obs_flow'].iteritems()]
     obs_meta['obs_flow'].update({'timeseries':{'current_year':current_year_vals,'quantiles':timeseries}})
     
-    return jsonify(obs_meta)
+    
+    #get forecast data
+    fcst = {'quantiles': timeseries}
+    
+    
+    data = {'obs':obs_meta, 'fcst': fcst}
+    return jsonify(data)
 
 
 

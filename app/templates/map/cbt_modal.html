@@ -156,10 +156,7 @@
     					.attr("class", "line forebay")
     					.attr("d", line);
     					
-					tw_line = d3.line()
-    					.x(function(d) { return xAxisScale(d.date); })
-    					.y(function(d) { return yAxisScale(d.value); });
-    				
+					
     				tw_path = gLine.append("path")
     					.datum(tw.values)
     					.attr("class", "line tailwater")

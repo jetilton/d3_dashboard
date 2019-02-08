@@ -2,12 +2,13 @@
 
 {% block app_content %}
 <script src="/static/d3.js"></script>
+<link rel="stylesheet" href="/static/dash/hydrograph.css"> 
 <script type="text/javascript">
-            
+   
             
             var parseTime = d3.timeParse("%Y-%m-%d");
     		var rowConverter = function(d, parseTime){
-            		return{'value':parseFloat(d['value']), 'date':parseTime(d['date'])}
+            		return{"value":parseFloat(d["value"]), "date":parseTime(d["date"])}
     		};
             
              var parseTimeSeries = function(data){
@@ -21,17 +22,42 @@
             };  
             
             var getNewData = function(data){
-                new_data = {}
-                d = data['obs_flow']['timeseries']
-                new_data['current_year'] = parseTimeSeries(d['current_year'])
+                var new_data = {}
+                d = data["obs"]["obs_flow"]["timeseries"]
+                new_data["current_year"] = parseTimeSeries(d["current_year"])
                 quants = {}
-                for(var key in d['quantiles']){
-                    ts = parseTimeSeries(d['quantiles'][key])
+                for(var key in d["quantiles"]){
+                    ts = parseTimeSeries(d["quantiles"][key])
                 		quants[key] =ts
                 }
-                new_data['quantiles'] = quants
+                new_data["obs_quants"] = quants
+                
+                d = data["fcst"]
+                quants = {}
+                for(var key in d["quantiles"]){
+                    ts = parseTimeSeries(d["quantiles"][key])
+                		quants[key] =ts
+                }
+                
+                new_data["fcst_quants"] = quants
+                
                 return new_data
             }
+                 
+                 
+                 
+            var getHighLow = function(high,low){
+                var highLow = []
+                var i
+                var len = high.length
+                for (i=0; i<len; ++i){
+                    	highLow[i] = {"date":high[i].date,"high":high[i].value, "low":low[i].value};
+                }
+                return highLow;
+            
+                
+            }
+                 
                  
 			async function getData(url){
             //Load in the data
@@ -41,17 +67,168 @@
     			}
     			
     		var hydrographPlot = function(data){
-                var current_year = data['current_year'];
-               return current_year
+    		
+            	
+        		
+                 cy = data["current_year"];
+                 oq = data["obs_quants"]
+                 fq = data["fcst_quants"]
+                 
+                 high = "0.9"
+                 low = "0.1"
+                 
+                 oq_high = oq[high]
+                 oq_low = oq[low]
+                 
+                 fq_high = fq[high]
+                 fq_low = fq[low]
+                 
+                 oqHighLow = getHighLow(oq_high,oq_low)
+                 fqHighLow = getHighLow(fq_high,fq_low)
+                
+                 cy_x_min = d3.min(cy, function(d) { return d.date; });
+                 cy_x_max = d3.max(cy, function(d) { return d.date; });
+                
+                 cy_y_min = d3.min(cy, function(d) { return d.value; });
+                 cy_y_max = d3.max(cy, function(d) { return d.value; });
+                
+                 oq_x_min = d3.min(oq_low, function(d) { return d.date; });
+                 oq_x_max = d3.max(oq_high, function(d) { return d.date; });
+                
+                 oq_y_min = d3.min(oq_low, function(d) { return d.value; });
+                 oq_y_max = d3.max(oq_high, function(d) { return d.value; });
+                
+                 fq_x_min = d3.min(fq_low, function(d) { return d.date; });
+                 fq_x_max = d3.max(fq_high, function(d) { return d.date; });
+                
+                 fq_y_min = d3.min(fq_low, function(d) { return d.value; });
+                 fq_y_max = d3.max(fq_high, function(d) { return d.value; });
+                 
+                 var y_min = d3.min([fq_y_min,oq_y_min, cy_y_min]);
+                 var y_max = d3.max([fq_y_max,oq_y_max, cy_y_max]);
+                 
+                 
+                 
+                var svgWidth = 1140;
+                var svgHeight = svgWidth/1.6;
+                
+                var margin = {top: 30, right: 60, bottom: 50, left: 60};
+                
+                var width = svgWidth - margin.left - margin.right;
+                var height = svgHeight - margin.top - margin.bottom; 
+                
+                
+                var year = cy_x_min.getFullYear();
+                var month = cy_x_min.getMonth();
+                var day = cy_x_min.getDate();
+                var domain_high = new Date(year + 1, month, day)
+                
+                var xAxisScale = d3.scaleTime()
+                        .domain([cy_x_min,domain_high])
+                        .range([0, width]);
+                        
+                var yAxisScale = d3.scaleLinear()
+                        .domain([0, y_max+y_max*.1])
+                        .range([height,0]);
+                
+                var xAxis = d3.axisBottom(xAxisScale)
+                        .tickFormat(d3.timeFormat("%m-%d"))
+                        .ticks(8, "s");
+                                
+                var yAxis = d3.axisLeft(yAxisScale)
+                        .ticks(5, "s");  
+                        
+                
+                var xAxis = d3.axisBottom(xAxisScale)
+                        .tickFormat(d3.timeFormat("%m-%d"))
+                        .ticks(8, "s");
+                                
+                var yAxis = d3.axisLeft(yAxisScale)
+                        .ticks(5, "s");  
+                
+                //create svg
+                var svg = d3.select("#hydrograph")
+                        .append('svg')
+                            .attr('width', svgWidth)
+                            .attr('height', svgHeight)
+                        .append('g')
+                            .attr('class', 'chart')
+                            .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+                            
+                            
+                            
+                var gX = svg.insert('g')
+                      .attr('class', 'x_axis')
+                      .attr("transform", "translate(0," + height + ")")
+                      .call(xAxis);
+                      
+                var gY = svg.insert('g',)
+                        .attr("class", "y_axis")
+                        .call(yAxis);
+                        
+                        
+                // text label for the x axis
+                  svg.append("text")             
+                      .attr("transform",
+                            "translate(" + (width/2) + " ," + 
+                                           (height + margin.top + 20) + ")")
+                      .style("text-anchor", "middle")
+                      .text("Date");
+                      
+                      
+                // text label for the y axis
+                  svg.append("text")
+                      .attr("transform", "rotate(-90)")
+                      .attr("y", 0 - margin.left)
+                      .attr("x",0 - (height / 2))
+                      .attr("dy", "1em")
+                      .style("text-anchor", "middle")
+                      .text("Flow (kcfs)");      
+            
+            
+            //add area group
+            var gArea = svg.insert('g')
+                    .attr('class', 'area-group')
+                    
+                area = d3.area()
+                    .x(function(d){return xAxisScale(d.date);})
+                    .y0(function(d){return yAxisScale(d.low)})
+                    .y1(function(d){return yAxisScale(d.high)})
+                    
+                gArea.append("path")
+                    .datum(oqHighLow)
+                    .attr("class", "area oq")
+                    .attr("d", area)
+                      
+            //add line group 
+                var gLine = svg.insert('g')
+                    .attr('class', 'line-group')
+                    
+                    line = d3.line()
+    					.x(function(d) { return xAxisScale(d.date); })
+    					.y(function(d) { return yAxisScale(d.value); });
+    				
+    				cy_path = gLine.append("path")
+    					.datum(cy)
+    					.attr("class", "line cy")
+    					.attr("d", line)
+    				
+                    
+               
+               return oq_y_max
             }
     			
 
     		var data;
             var url = "http://127.0.0.1:5000/dash/hydrographdata/{{ cbt }}"
-            const ts_data = getData(url).then(getNewData).then(hydrographPlot)
+            const raw_data = getData(url)
+        
+            data = raw_data.then(getNewData)
             
-            
+            test = data.then(hydrographPlot)
             
         </script>
-
+    <div class="row">
+        <div class="col-lg" id ="hydrograph"></div>
+    </div>
 {% endblock %}

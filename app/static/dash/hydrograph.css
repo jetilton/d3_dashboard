@@ -1,0 +1,11 @@
+.line {
+		fill: none;
+		stroke-width: 3;
+		stroke: teal;	
+}
+
+.oq {
+		fill: grey;
+		opacity: .8;
+			
+}
