@@ -261,20 +261,34 @@
                               
                               d0 = oqHighLow[i - 1]
                               d1 = oqHighLow[i]
-                              d = x0 - d0.year > d1.year - x0 ? d1 : d0;
-                          
-    
+                              idx = x0 - d0.date > d1.date - x0 ? i : i-1;
+                            
                           
                           tooltipLine.attr("class", "tool-tip-visible")
-                                .attr("x1", mouse_x)
-                                .attr("x2", mouse_x)
+                                .attr("x1", xAxisScale(oqHighLow[idx].date))
+                                .attr("x2", xAxisScale(oqHighLow[idx].date))
                                 .attr("y1", -height)
                                 .attr("y2", height)
+                            
+                                
+                         //update data 
+                            d3.select('#mytooltip')
+                                .select("#date")
+                                    .text(oqHighLow[idx].date.toLocaleString("en-US"))
+                            d3.select('#mytooltip')
+                                .select("#obvalue")
+                                    .text(cy[idx].value);  
+                        //show box
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", false);
+                            d3.select('.tooltipdata#obvalue') 
+                                .classed("hidden", false);
                              
                         })
                         .on("mouseout", function () {
                             tooltipLine.attr("class", "tool-tip-invisible");
-                            
+                            d3.select('.tooltipdata#date') 
+                                .classed("hidden", true);
                         });
                     
                     	
@@ -299,18 +313,15 @@
                                <col span="5" class="col2">
                                   <tr>
                                     <td></td>
-                                    <td style= "text-align: left">Date:</td>
-                                    <td id = "date" class = "tooltipdata hidden"></strong></th>
+                                    <td style= "text-align: left">Date: <span id = "date" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="ob-legend"></div></td>
-                                    <td "text-align: left">Observed (kcfs):</td>
-                                    <td id = "obvalue" class = "tooltipdata hidden"></td>
+                                    <td "text-align: left">Observed (kcfs): <span id = "obvalue" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="oq-legend"></div></td>
-                                    <td "text-align: left">Observed Historical (kcfs):</td>
-                                    <td id = "oqvalue" class = "tooltipdata hidden"></td>
+                                    <td "text-align: left">Observed Historical (kcfs): <span id = "oqvalueHigh" class = "tooltipdata hidden"></span>, <span id = "oqvalueLow" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="fq-legend"></div></td>

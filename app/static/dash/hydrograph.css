@@ -37,14 +37,16 @@ line.tool-tip-visible{
 
 .legend {
 		
-	width: 10px;
-	height: 10px;
+	width: 15px;
+	height: 15px;
 	float: left;
 	vertical-align: bottom;
 	bottom: 0;
+	position: relative;
 	font-family: sans-serif;
 	font-size: 15px;
 	line-height: 18px;
+	margin-right: 5px;
     				
 }
 
