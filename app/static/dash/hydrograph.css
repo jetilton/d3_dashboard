@@ -74,11 +74,12 @@ line.tool-tip-visible{
 #wrapper {
   padding-left: 250px;
   transition: all 0.4s ease 0s;
+
 }
 
 #sidebar-wrapper {
-  margin-left: -150px;
-  left: 250px;
+  margin-left: -200px;
+  left: 215px;
   width: 250px;
   position: fixed;
   height: 100%;

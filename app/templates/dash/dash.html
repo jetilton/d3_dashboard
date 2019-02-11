@@ -5,7 +5,7 @@
 <script src="https://unpkg.com/d3-simple-slider/build/d3-simple-slider.js"></script>
 <link rel="stylesheet" href="/static/dash/hydrograph.css"> 
 <script type="text/javascript">
-           
+            smooth = 1
             bisectDate = d3.bisector(function(d) { return d.date; }).left;
             var parseTime = d3.timeParse("%Y-%m-%d");
     		var rowConverter = function(d, parseTime){
@@ -99,7 +99,7 @@
     		
     		
     		var setInitial = function(data){
-            	 cy = data["current_year"];
+            	 cy_raw = data["current_year"];
                  oq = data["obs_quants"]
                  fq = data["fcst_quants"]
                  
@@ -115,11 +115,11 @@
                  var oqHighLow = getHighLow(oq_low,oq_high)
                  var fqHighLow = getHighLow(fq_low,fq_high)
                 
-                 cy_x_min = d3.min(cy, function(d) { return d.date; });
-                 cy_x_max = d3.max(cy, function(d) { return d.date; });
+                 cy_x_min = d3.min(cy_raw, function(d) { return d.date; });
+                 cy_x_max = d3.max(cy_raw, function(d) { return d.date; });
                 
-                 cy_y_min = d3.min(cy, function(d) { return d.value; });
-                 cy_y_max = d3.max(cy, function(d) { return d.value; });
+                 cy_y_min = d3.min(cy_raw, function(d) { return d.value; });
+                 cy_y_max = d3.max(cy_raw, function(d) { return d.value; });
                 
                  oq_x_min = d3.min(oq_low, function(d) { return d.date; });
                  oq_x_max = d3.max(oq_high, function(d) { return d.date; });
@@ -156,8 +156,9 @@
                   d3.select('p#value-range').text(val.map(d3.format('.2')).join(' - '))
                   low = ((Math.round(val[0]*100))/100).toFixed(2)
                   high = ((Math.round(val[1]*100))/100).toFixed(2)
-                  oqHighLow = getHighLow(oq[high],oq[low])
-                  fqHighLow = getHighLow(fq[high],fq[low])
+                  oqHighLow = EMARangeCalc(getHighLow(oq[high],oq[low]),smooth)
+                  fqHighLow =  EMARangeCalc(getHighLow(fq[high],fq[low]),smooth)
+                  cy = EMACalc(cy_raw, smooth)
                   update({"cy":cy,"oqHighLow":oqHighLow,"fqHighLow":fqHighLow})
                 });
             
@@ -183,15 +184,20 @@
                // Step
               var sliderStep = d3
                 .sliderBottom()
-                .min(0)
+                .min(1)
                 .max(30)
                 .width(150)
-                .tickFormat(d3.format('.2%'))
                 .ticks(5)
-                .step(0.005)
-                .default(0.015)
+                .step(1)
+                .default(1)
                 .on('onchange', val => {
-                  d3.select('p#value-step').text(d3.format('.2%')(val));
+                  smooth = val
+                  oqHighLow = EMARangeCalc(getHighLow(oq[high],oq[low]),smooth)
+                  fqHighLow =  EMARangeCalc(getHighLow(fq[high],fq[low]),smooth)
+                  cy = EMACalc(cy_raw, smooth)
+                  console.log(cy)
+                  update({"cy":cy,"oqHighLow":oqHighLow,"fqHighLow":fqHighLow})
+                  
                 });
             
               var gStep = d3
@@ -204,10 +210,9 @@
             
               gStep.call(sliderStep);
             
-              d3.select('p#value-step').text(d3.format('.2%')(sliderStep.value()));
-
+              
                
-    		 return {"cy":cy, "oqHighLow":oqHighLow, "fqHighLow":fqHighLow}
+    		 return {"cy":cy_raw, "oqHighLow":oqHighLow, "fqHighLow":fqHighLow}
     		
     		}
     			
@@ -355,10 +360,21 @@
                   
                   
                   //line       
-                  cy_path = gData.append("path")
+                  cy_path = gData.selectAll(".line.cy")
     					.data([cy])
+    					
+    				cy_path.enter()
+        				.append("path")
     					.attr("class", "line cy")
+    					.transition()
+                        .duration(25)
     					.attr("d", line)
+    				
+    				cy_path.transition()
+                        .duration(25)
+                      	.attr("d", line);	
+    					
+    				cy_path.exit().remove();
             
                     var listenerRect = gListener
                         .append('rect')
@@ -395,7 +411,7 @@
                                 .select("#ob-data")
                                     .text(function(){
                                             if(oqHighLow[idx].date<=cy_x_max){ 
-                                                return cy[idx].value
+                                                return Math.round(cy[idx].value*100)/100
                                             }else{ return ' '}
                                         }) 
                             d3.select('#mytooltip')
@@ -429,11 +445,14 @@
 <div id="wrapper">
     <div id="sidebar-wrapper">
         <div class="sidebar-widget">
-             
-                <h4>Quantiles</h4>
-            
-            <div class="row">
+            <div class = "widgets">
+                <strong>Quantiles</strong>
+                <br>
                 <div id="slider-range"></div>
+                <br>
+                <strong>Exponential Smoothing</strong>
+                <br>
+                <div id="slider-step"></div>
             </div>
         </div>
     </div>
