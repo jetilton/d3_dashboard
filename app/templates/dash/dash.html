@@ -274,19 +274,28 @@
                          //update data 
                             d3.select('#mytooltip')
                                 .select("#date")
-                                    .text(oqHighLow[idx].date.toLocaleString("en-US"))
+                                    .text(oqHighLow[idx].date.toLocaleString("en-US").split(", ")[0])
                             d3.select('#mytooltip')
-                                .select("#obvalue")
-                                    .text(cy[idx].value);  
+                                .select("#ob-data")
+                                    .text(function(){
+                                            if(oqHighLow[idx].date<=cy_x_max){ 
+                                                return cy[idx].value
+                                            }else{ return ' '}
+                                        });  
+                            d3.select('#mytooltip')
+                                .select("#oq-data")
+                                    .text(Math.round(oqHighLow[idx].high*100)/100 +', '+Math.round(oqHighLow[idx].low*100)/100);  
+                            d3.select('#mytooltip')
+                                .select("#fq-data")
+                                    .text(Math.round(fqHighLow[idx].high*100)/100 +', '+Math.round(fqHighLow[idx].low*100)/100);  
                         //show box
-                            d3.select('.tooltipdata#date') 
+                            d3.selectAll('.tooltipdata') 
                                 .classed("hidden", false);
-                            d3.select('.tooltipdata#obvalue') 
-                                .classed("hidden", false);
+                            
                         })
                         .on("mouseout", function () {
                             tooltipLine.attr("class", "tool-tip-invisible");
-                            d3.select('.tooltipdata#date') 
+                            d3.selectAll('.tooltipdata') 
                                 .classed("hidden", true);
                         });
                     
@@ -316,16 +325,15 @@
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="ob-legend"></div></td>
-                                    <td "text-align: left">Observed (kcfs): <span id = "obvalue" class = "tooltipdata hidden"></span></td>
+                                    <td "text-align: left">Observed (kcfs): <span id = "ob-data" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="oq-legend"></div></td>
-                                    <td "text-align: left">Observed Historical (kcfs): <span id = "oqvalueHigh" class = "tooltipdata hidden"></span>, <span id = "oqvalueLow" class = "tooltipdata hidden"></span></td>
+                                    <td "text-align: left">Observed Historical (kcfs): <span id = "oq-data" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                   <tr>
                                     <td><div class = "legend" id="fq-legend"></div></td>
-                                    <td "text-align: left">Forecast (kcfs):</td>
-                                    <td id = "fqvalue" class = "tooltipdata hidden"></td>
+                                    <td "text-align: left">Forecast (kcfs): <span id = "fq-data" class = "tooltipdata hidden"></span></td>
                                   </tr>
                                 </table> 
                     </foreignobject>
