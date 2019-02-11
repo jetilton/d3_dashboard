@@ -36,7 +36,7 @@
     </nav>
 {% endblock %}
 {% block content %}
-    <div class="container">
+    
         {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -47,5 +47,5 @@
 
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
-    </div>
+    
 {% endblock %}

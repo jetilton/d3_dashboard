@@ -63,13 +63,12 @@ def dash_data(cbt):
     
     #don't want to use current year in quantile calcs
     obs_pivot = obs_pivot.loc[:,:now.year-1]
-    quants = [str(i/100.0) for i in range(0, 105, 5)]
+    quants = [i/100.0 for i in range(0, 105, 5)]
     obs_quant = pd.DataFrame(data = obs_pivot.quantile(q = float(quants[0]),axis = 1))
     obs_quant.columns = ['0.00']
     for quant in quants[1:]:
-        obs_quant[quant] = obs_pivot.quantile(q = float(quant),axis = 1)
+        obs_quant['{0:.2f}'.format(quant)] = obs_pivot.quantile(q = float(quant),axis = 1)
     obs_quant.reset_index(inplace = True)
-    
     #set dates for easier plotting
     wy_start_index =obs_quant[(obs_quant['month']==8) &(obs_quant['day']==1)].index[0]
     this_year = obs_quant.iloc[wy_start_index:]
@@ -79,6 +78,7 @@ def dash_data(cbt):
     obs.set_index('date', inplace = True)
     timeseries = {}
     for column in obs.loc[:,'0.00':].columns:
+        print(column)
         ts = [{'date':i, 'value':v} for i,v in obs[column].iteritems()]
         timeseries.update({column:ts})
     current_year = obs_flow[obs_flow['water_year']==now.year]
